@@ -40,6 +40,8 @@ if __name__ == '__main__':
    for data in housing_data_file.readlines():
       housing_data.append([eval(num) for num in data.split(',')])
 
+   housing_data_file.close()
+
    # Split into training and test data
    training_set_X = []
    training_set_Y = []
@@ -110,6 +112,8 @@ if __name__ == '__main__':
       predictions[i,1] = LR.predict(test_set_X[i])
       predictions[i,0] = test_set_Y[i]
       x_vals[i] = i+1
+
+   predictions.sort()
 
    plt.plot(x_vals, predictions[:,0], x_vals, predictions[:,1])
    plt.show()

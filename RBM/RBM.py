@@ -54,7 +54,7 @@ class RBM:
       """
 
       # h = sigmoid(W'v + c)
-      return sigmoid(np.dot(self.weights.transpose(), visible) + self.bias_visible)
+      return self.sigmoid(np.dot(self.weights.transpose(), visible) + self.bias_hidden)
 
 
    def get_probability_visible(self, hidden):
@@ -63,7 +63,7 @@ class RBM:
       hidden units.
       """
 
-      return sigmoid(np.dot(self.weights, hidden) + self.bias_hidden)
+      return self.sigmoid(np.dot(self.weights, hidden) + self.bias_visible)
 
 
    def sample_visible(self, hidden):
@@ -73,8 +73,8 @@ class RBM:
 
       P_visible = self.get_probability_visible(hidden)
 
-      return [1.0 if random.random() < p else 0.0 for p in P_visible]
-
+      v_sample = [1.0 if random.random() < p else 0.0 for p in P_visible]
+      return np.array([v_sample]).transpose()
 
    def sample_hidden(self, visible):
       """
@@ -83,45 +83,49 @@ class RBM:
 
       P_hidden = self.get_probability_hidden(visible)
 
-      return [1.0 if random.random() < p else 0.0 for p in P_visible]
+      h_sample = [1.0 if random.random() < p else 0.0 for p in P_hidden]
+      return np.array([h_sample]).transpose()
 
 
-   # These are from deeplearning.net
-   def propup(self, visible):
+   def contrastive_divergence(self, v0, k=1):
+      """
+      Perform CD-k for the given data point
+      """
+
+      # Calculate an h0 given the v0
+      h0 = self.sample_hidden(v0)
+
+      # We'll need to iteratively sample to get the next values.  We'll start
+      # with k=0 and iterate
+      vk = v0
+      hk = h0
+
+      # Now calculate vk and hk
+      for i in range(k):
+         vk = self.sample_visible(hk)
+         hk = self.sample_hidden(vk)
+
+      # Compute positive and negative as the outer product of these
+      positive = np.dot(v0, h0.transpose())
+      negative = np.dot(vk, hk.transpose())
+
+      # Calculate the delta-weight and delta-biases
+      delta_weights = positive - negative
+      delta_visible_bias = v0 - vk
+      delta_hidden_bias = h0 - hk
+
+      # Return these--let the learning rule handle them
+      return delta_weights, delta_visible_bias, delta_hidden_bias
+
+
+   def train_epoch(self, dataset, learning_rate = 0.001, k = 1):
       """
       """
 
-      net_input = np.dot(self.weights.transpose(), visible) + self.bias_hidden
-      return net_input, self.sigmoid(net_input)
+      for data in dataset:
+         dW, db_vis, db_hid = self.contrastive_divergence(np.array([data]).transpose(), k)
 
-
-   def propdown(self, hidden):
-      """
-      """
-
-      net_input = np.dot(self.weights, hidden) + self.bias_visible
-      return net_input, self.sigmoid(net_input)
-   
-
-   def sample_h_given_v(self, v0):
-      """
-      """
-
-      pre_sigmoid_h1, h1_mean = self.propup(v0)
-      h1_sample = [1.0 if random.random() < p else 0.0 for p in h1_mean]
-      return pre_sigmoid_h1, h1_mean, h1_sample
-
-      
-   def sample_v_given_h(self, h0):
-      """
-      """
-
-      pre_sigmoid_v1, v1_mean = self.propdown(h0)
-      v1_sample = [1.0 if random.random() < p else 0.0 for p in v1_mean]
-      return pre_sigmoid_v1, v1_mean, v1_sample
-
-
-   def contrastive_divergence(self, k=1):
-      """
-      """
+         self.weights = self.weights + learning_rate*dW
+         self.bias_hidden = self.bias_hidden + learning_rate*db_hid
+         self.bias_visibile = self.bias_visible + learning_rate*db_vis
 

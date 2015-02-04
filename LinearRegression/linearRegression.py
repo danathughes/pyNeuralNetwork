@@ -39,7 +39,7 @@ class LinearRegressionModel:
          error = prediction - output[i]
          cost = cost + error**2
 
-      return cost/2
+      return cost/(2*len(data))
 
 
    def gradient(self, data, output):
