@@ -2,7 +2,7 @@
 ##
 ## Simple script to predict iris
 
-from logisticRegression import *
+from logisticRegression_sigmoid import *
 import random
 import matplotlib.pyplot as plt
 
@@ -72,9 +72,11 @@ if __name__ == '__main__':
 
    # Create the model
    LR = LogisticRegressionModel(numVariables, 3)
+   LR.randomize_weights()
+
 
    # Train the model
-   LR.train_minibatch(training_set_X, training_set_Y, 0.1, 0.01, 1000)
+   LR.train_minibatch(training_set_X, training_set_Y, 0.9, 0.01, 200)
 
 
    # How'd we do?

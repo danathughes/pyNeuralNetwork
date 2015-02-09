@@ -20,6 +20,10 @@ def get_RBM():
       for i in range(20):
          print '  ' + str(i) + '...',
          r.train_epoch(digits, rate)
+         err = r.free_energy(digits)
+         print 'Energy = ' + str(err) + '...',
+         PL = r.pseudolikelihood(digits)
+         print 'Pseudolikelihood = ' + str(PL) + '...',
          print 'Done'
 
    return r, digits
