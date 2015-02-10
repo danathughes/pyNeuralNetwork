@@ -1,11 +1,12 @@
-## predictHousingCosts.py
+## predictIris.py
 ##
 ## Simple script to predict iris
 
-from logisticRegression import *
+from LogisticRegression.logisticRegression import *
 import random
 import matplotlib.pyplot as plt
-import training
+import Training.training as training
+from datasets.iris import *
 
 irisDataFileName = 'iris.data'
 
@@ -34,20 +35,7 @@ def normalize(data):
 if __name__ == '__main__':
    # Load the data
 
-   iris_data_file = open(irisDataFileName)
-   iris_data = []
-
-   for data in iris_data_file.readlines():
-      tmp = [eval(num) for num in data.split(',')[0:4]]
-      flower = data.split(',')[-1].strip()
-      if flower == 'Iris-setosa':
-         tmp.append([1,0,0])
-      elif flower == 'Iris-versicolor':
-         tmp.append([0,1,0])
-      else:
-         tmp.append([0,0,1])
-      iris_data.append(tmp)
-
+   iris_data = load_iris_data()
 
    # Split into training and test data
    training_set_X = []

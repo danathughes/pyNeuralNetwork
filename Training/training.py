@@ -17,7 +17,7 @@ def train_epoch(model, data, output, learning_rate = 0.1):
    model.update_weights(-learning_rate * gradient)
 
 
-def train_batch(model, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000):
+def train_batch(model, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000, logger=None, test_data=None, test_output=None):
    """
    Perform batch training using the provided data and labels
    """
@@ -25,12 +25,14 @@ def train_batch(model, data, output, learning_rate = 0.1, convergence = 0.0001, 
    epoch = 0
 
    while model.cost(data, output) > convergence and epoch < maxEpochs:
-      print "Epoch", epoch, "- Cost:", model.cost(data,output)
+      if logger:
+         logger.log_training(epoch, model, data, output, test_data, test_output)
       epoch+=1
       train_epoch(model, data, output, learning_rate)
+      
 
 
-def train_minibatch(model, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000, numBatches = 10):
+def train_minibatch(model, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000, numBatches = 10, logger=None, test_data=None, test_output=None):
    """
    Perform batch training using the provided data and labels
    """
@@ -39,8 +41,10 @@ def train_minibatch(model, data, output, learning_rate = 0.1, convergence = 0.00
    batchSize = int(len(data)/numBatches)
 
    while model.cost(data, output) > convergence and epoch < maxEpochs:
-  
-      print "Epoch", epoch, "- Cost:", model.cost(data, output)
+
+      if logger:
+         logger.log_training(epoch, model, data, output, test_data, test_output)
+
       epoch+=1
 
       for i in range(numBatches):
@@ -50,7 +54,7 @@ def train_minibatch(model, data, output, learning_rate = 0.1, convergence = 0.00
          train_epoch(model, batch_data, batch_output, learning_rate)
 
 
-def train_stochastic(model, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000):
+def train_stochastic(model, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000, logger=None, test_data=None, test_output=None):
    """
    Perform stochastic (on-line) training using the data and labels
    """
@@ -58,7 +62,9 @@ def train_stochastic(model, data, output, learning_rate = 0.1, convergence = 0.0
    epoch = 0
 
    while model.cost(data, output) > convergence and epoch < maxEpochs:
-      print "Epoch", epoch, "- Cost:", model.cost(data,output)
+      if logger:
+         logger.log_training(epoch, model, data, output, test_data, test_output)
+
       epoch+=1
       for i in range(len(data)):
          train_epoch(model, [data[i]], [output[i]])
