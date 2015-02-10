@@ -29,6 +29,7 @@ def train_batch(model, data, output, learning_rate = 0.1, convergence = 0.0001, 
       epoch+=1
       train_epoch(model, data, output, learning_rate)
 
+
 def train_minibatch(model, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000, numBatches = 10):
    """
    Perform batch training using the provided data and labels
@@ -47,6 +48,7 @@ def train_minibatch(model, data, output, learning_rate = 0.1, convergence = 0.00
          batch_output = output[i*batchSize:(i+1)*batchSize]
 
          train_epoch(model, batch_data, batch_output, learning_rate)
+
 
 def train_stochastic(model, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000):
    """
