@@ -1,4 +1,5 @@
-from logisticRegression_softmax import *
+from logisticRegression import *
+import training
 import random
 import matplotlib.pyplot as plt
 from digits import *
@@ -17,7 +18,7 @@ if __name__ == '__main__':
 
 
    # Train the model
-   LR.train_minibatch(training_set_X, training_set_Y, 0.9, 0.01, 200)
+   training.train_minibatch(LR, training_set_X, training_set_Y, 0.9, 0.01, 20)
 
 
    # How'd we do?
@@ -59,4 +60,32 @@ if __name__ == '__main__':
    print "Mean Training Error: ", np.mean(mean_training_error)
    print "Total Test Error:    ", np.sum(total_test_error)
    print "Mean Test Error:     ", np.mean(mean_test_error)
+
+   print
+   print "Training Classification Results"
+   print "==============================="
+   correct_predictions = 0
+   for i in range(len(training_set_X)):
+      classes = LR.classify(training_set_X[i])
+      if classes == training_set_Y[i]:
+         correct_predictions += 1
+   training_classification_percentage = float(correct_predictions)/len(training_set_X)
+   print "Correctly Classified:        ", correct_predictions
+   print "Percent Correctly Classified:", 100*training_classification_percentage
+
+   print
+   print "Test Classification Results"
+   print "==========================="
+   correct_predictions = 0
+   for i in range(len(test_set_X)):
+      classes = LR.classify(test_set_X[i])
+      if classes == test_set_Y[i]:
+         correct_predictions += 1
+   training_classification_percentage = float(correct_predictions)/len(test_set_X)
+   print "Correctly Classified:        ", correct_predictions
+   print "Percent Correctly Classified:", 100*training_classification_percentage
+
+
+   
+
 

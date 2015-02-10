@@ -8,15 +8,130 @@
 ##         batch and stochastic gradient descent.
 ##   1.01  Modified output to be softmax vector
 ##   1.02  Fixed the predictor.  Converges much better now!
+##   1.03  Separated training algorithms into a separate file
+##         Set up model to accept cost / gradient functions, rather than
+##         modifying specific implementations
+##         Added cost / gradient functions for sigmoid and softmax layers
 
 import numpy as np
 import random
+
+## Cost and gradient functions
+
+def cost_sigmoid(model, dataset, outputs):
+   """
+   Cost function for sigmoid output units
+   """
+
+   # Add the offset term to the data
+   cost = 0.0
+
+   for i in range(len(dataset)):
+      prediction = model.predict(dataset[i])
+
+      for j in range(model.M):
+         cost = cost - ((1.0-outputs[i][j])*np.log(1.0-prediction[j]) + outputs[i][j]*np.log(prediction[j]))
+
+   return cost
+
+
+def cost_softmax(model, dataset, outputs):
+   """
+   Cost function for softmax output units (i.e., cross-entropy error
+   """
+
+   cost = 0.0
+
+   for i in range(len(dataset)):
+      prediction = model.predict(dataset[i])
+
+      for j in range(model.M):
+         cost = cost - outputs[i][j]*np.log(prediction[j])
+
+   return cost
+
+
+
+def gradient_sigmoid(model, dataset, outputs):
+   """
+   Gradient for sigmoid output units
+   """
+
+   gradient = np.zeros((model.N + 1, model.M)) 
+
+   for k in range(len(dataset)):
+      prediction = model.predict(dataset[k])
+
+      for j in range(model.M):
+         gradient[0,j] -= prediction[j]*(1.0 - prediction[j])*(outputs[k][j] - prediction[j])
+
+         for i in range(model.N):
+            gradient[i+1,j] -= dataset[k][i]*prediction[j]*(1.0 - prediction[j])*(outputs[k][j] - prediction[j])
+  
+   return gradient/len(dataset)
+
+
+def gradient_softmax(model, dataset, outputs):
+   """
+   Gradient for softmax output units
+   """
+
+   gradient = np.zeros((model.N + 1, model.M)) 
+
+   for k in range(len(dataset)):
+      prediction = model.predict(dataset[k])
+
+      for j in range(model.M):
+         gradient[0,j] -= (outputs[k][j] - prediction[j])
+
+         for i in range(model.N):
+            gradient[i+1,j] -= dataset[k][i]*(outputs[k][j] - prediction[j])
+  
+   return gradient/len(dataset)
+
+
+def predict_sigmoid(model, data):
+   """
+   Provide a prediction for the data provided
+   """
+
+   prediction = np.zeros(model.M)
+
+   for i in range(model.M):         
+      prediction[i] = model.sigmoid(model.weights[0,i] + np.sum(model.weights[1:,i]*np.array(data)))
+
+   return prediction
+
+
+def predict_softmax(model, data):
+   """
+   Provide a prediction for the data provided
+   """
+
+   prediction = np.zeros(model.M)
+
+   for i in range(model.M):         
+      prediction[i] = np.exp(model.weights[0,i] + np.sum(model.weights[1:,i]*np.array(data)))
+
+   partition = sum(prediction)
+
+   for i in range(model.M):
+      prediction[i] = prediction[i]/partition
+
+   return prediction
+
+# Create constant tuples of cost / gradient pairs for use with the Logistic 
+# Regression models
+
+SIGMOID = (cost_sigmoid, gradient_sigmoid, predict_sigmoid)
+SOFTMAX = (cost_softmax, gradient_softmax, predict_softmax)
+
 
 class LogisticRegressionModel:
    """
    """
 
-   def __init__(self, numVariables, numOutputs):
+   def __init__(self, numVariables, numOutputs, activation = SOFTMAX):
       """
       Create a new Logistic Regression model with randomized weights
       """
@@ -25,6 +140,19 @@ class LogisticRegressionModel:
       self.N = numVariables
       self.M = numOutputs
       self.weights = np.zeros((numVariables + 1, numOutputs))     
+      self.activation_cost = activation[0]
+      self.activation_gradient = activation[1]
+      self.activation_predict = activation[2]
+
+
+   def randomize_weights(self):
+      """
+      Set all the weights to a value in the range of 1/fan_in
+      """
+
+      for i in range(self.N+1):
+         for j in range(self.M):
+            self.weights[i,j] = (random.random()-0.5)/(2.0*self.N)
 
 
    def sigmoid(self, z):
@@ -34,91 +162,30 @@ class LogisticRegressionModel:
       return 1.0/(1.0+np.exp(-z))
 
 
-   def cost(self, data, output):
+   def cost(self, dataset, outputs):
       """
       Determine the cost (error) of the parameters given the data and labels
       """
 
-      # Add the offset term to the data
-      cost = 0.0
-
-      for i in range(len(data)):
-         prediction = self.predict(data[i])
-
-         for j in range(self.M):
-            cost = cost + ((1.0-output[i][j])*np.log(1.0-prediction[j]) + output[i][j]*np.log(prediction[j]))
-
-      return -cost/len(data)
+      return self.activation_cost(self, dataset, outputs)
 
 
-   def gradient(self, data, output):
+   def gradient(self, dataset, outputs):
       """
       Determine the gradient of the parameters given the data and labels
+
+      Gradient for the sigmoid output is dy/dx = x*y*(1-y)
       """
 
-      gradient = np.zeros((self.N + 1, self.M)) 
-
-      for k in range(len(data)):
-         prediction = self.predict(data[k])
-
-         for j in range(self.M):
-            gradient[0,j] -= (output[k][j] - prediction[j])
-
-            for i in range(self.N):
-               gradient[i+1,j] -= data[k][i]*(output[k][j] - prediction[j])
-  
-      return gradient/len(data)
+      return self.activation_gradient(self, dataset, outputs)
 
 
-   def train_batch(self, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000):
+   def update_weights(self, dW):
       """
-      Perform batch training using the provided data and labels
+      Update the weights in the model by adding dW
       """
 
-      epoch = 0
-
-      while self.cost(data, output) > convergence and epoch < maxEpochs:
-         print "Epoch", epoch, "- Cost:", self.cost(data,output)
-         epoch+=1
-         gradient = np.array(self.gradient(data, output))
-         self.weights -= learning_rate * gradient
-
-
-   def train_minibatch(self, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000, numBatches = 10):
-      """
-      Perform batch training using the provided data and labels
-      """
-
-      epoch = 0
-      batchSize = int(len(data)/numBatches)
-
-      while self.cost(data, output) > convergence and epoch < maxEpochs:
-  
-         print "Epoch", epoch, "- Cost:", self.cost(data, output)
-         epoch+=1
-
-         for i in range(numBatches):
-            batch_data = data[i*batchSize:(i+1)*batchSize]
-            batch_output = output[i*batchSize:(i+1)*batchSize]
-
-            gradient = np.array(self.gradient(batch_data, batch_output))
-            self.weights -= learning_rate * gradient
-
-
-   def train_stochastic(self, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000):
-      """
-      Perform stochastic (on-line) training using the data and labels
-      """
-
-      epoch = 0
-
-      while self.cost(data, output) > convergence and epoch < maxEpochs:
-         print "Epoch", epoch, "- Cost:", self.cost(data,output)
-         epoch+=1
-         for i in range(len(data)):
-            gradient = np.array(self.gradient([data[i]], [output[i]]))
-            self.weights -= learning_rate * gradient 
- 
+      self.weights += dW
 
 
    def predict(self, data):
@@ -126,18 +193,17 @@ class LogisticRegressionModel:
       Predict the class probabilites given the data
       """
 
-      prediction = np.zeros(self.M)
-
-      for i in range(self.M):         
-         prediction[i] = np.exp(self.weights[0,i] + np.sum(self.weights[1:,i]*np.array(data)))
-
-      partition = sum(prediction)
-
-      for i in range(self.M):
-         prediction[i] = prediction[i]/partition
-
-      return prediction
+      return self.activation_predict(self, data)
 
 
+   def classify(self, data):
+      """
+      Classify the data by assigning 1 to the highest prediction probability
+      """
+      
+      predictions = self.predict(data)
+      P_max = np.max(predictions)
 
+      classes = [1 if p == P_max else 0 for p in predictions]
+      return classes
       

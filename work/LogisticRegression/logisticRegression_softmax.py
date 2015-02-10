@@ -8,6 +8,7 @@
 ##         batch and stochastic gradient descent.
 ##   1.01  Modified output to be softmax vector
 ##   1.02  Fixed the predictor.  Converges much better now!
+##   1.03  Fixed cost function to have cross-entropy cost
 
 import numpy as np
 import random
@@ -92,66 +93,6 @@ class LogisticRegressionModel:
       """
 
       self.weights += dW
-
-
-   def train_epoch(self, data, output, learning_rate = 0.1):
-      """
-      Train once on each of the items in the provided dataset
-      """
-
-      gradient = np.array(self.gradient(data, output))
-      self.weights -= learning_rate * gradient
-
-
-   def train_batch(self, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000):
-      """
-      Perform batch training using the provided data and labels
-      """
-
-      epoch = 0
-
-      while self.cost(data, output) > convergence and epoch < maxEpochs:
-         print "Epoch", epoch, "- Cost:", self.cost(data,output)
-         epoch+=1
-         gradient = np.array(self.gradient(data, output))
-         self.weights -= learning_rate * gradient
-
-
-   def train_minibatch(self, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000, numBatches = 10):
-      """
-      Perform batch training using the provided data and labels
-      """
-
-      epoch = 0
-      batchSize = int(len(data)/numBatches)
-
-      while self.cost(data, output) > convergence and epoch < maxEpochs:
-  
-         print "Epoch", epoch, "- Cost:", self.cost(data, output)
-         epoch+=1
-
-         for i in range(numBatches):
-            batch_data = data[i*batchSize:(i+1)*batchSize]
-            batch_output = output[i*batchSize:(i+1)*batchSize]
-
-            gradient = np.array(self.gradient(batch_data, batch_output))
-            self.weights -= learning_rate * gradient
-
-
-   def train_stochastic(self, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000):
-      """
-      Perform stochastic (on-line) training using the data and labels
-      """
-
-      epoch = 0
-
-      while self.cost(data, output) > convergence and epoch < maxEpochs:
-         print "Epoch", epoch, "- Cost:", self.cost(data,output)
-         epoch+=1
-         for i in range(len(data)):
-            gradient = np.array(self.gradient([data[i]], [output[i]]))
-            self.weights -= learning_rate * gradient 
- 
 
 
    def predict(self, data):

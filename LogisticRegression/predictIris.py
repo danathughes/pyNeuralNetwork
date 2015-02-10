@@ -2,10 +2,10 @@
 ##
 ## Simple script to predict iris
 
-from logisticRegression_sigmoid import *
+from logisticRegression import *
 import random
 import matplotlib.pyplot as plt
-
+import training
 
 irisDataFileName = 'iris.data'
 
@@ -71,12 +71,12 @@ if __name__ == '__main__':
    numVariables = len(training_set_X[0])
 
    # Create the model
-   LR = LogisticRegressionModel(numVariables, 3)
+   LR = LogisticRegressionModel(numVariables, 3, SOFTMAX)
    LR.randomize_weights()
 
 
    # Train the model
-   LR.train_minibatch(training_set_X, training_set_Y, 0.9, 0.01, 200)
+   training.train_minibatch(LR, training_set_X, training_set_Y, 0.5, 0.0001, 200)
 
 
    # How'd we do?
@@ -119,14 +119,32 @@ if __name__ == '__main__':
    print "Total Test Error:    ", np.sum(total_test_error)
    print "Mean Test Error:     ", np.mean(mean_test_error)
 
-#   x_vals = np.zeros(len(test_set_X))
-#   predictions = np.zeros((len(test_set_Y),2))
-#   for i in range(len(test_set_X)):
-#      predictions[i,1] = LR.predict(test_set_X[i])
-#      predictions[i,0] = test_set_Y[i]
-#      x_vals[i] = i+1
 
-#   plt.plot(x_vals, predictions[:,0], x_vals, predictions[:,1])
-#   plt.show()
+   print
+   print "Training Classification Results"
+   print "==============================="
+   correct_predictions = 0
+   for i in range(len(training_set_X)):
+      classes = LR.classify(training_set_X[i])
+      if classes == training_set_Y[i]:
+         correct_predictions += 1
+   training_classification_percentage = float(correct_predictions)/len(training_set_X)
+   print "Correctly Classified:        ", correct_predictions
+   print "Percent Correctly Classified:", 100*training_classification_percentage
+
+   print
+   print "Test Classification Results"
+   print "==========================="
+   correct_predictions = 0
+   for i in range(len(test_set_X)):
+      classes = LR.classify(test_set_X[i])
+      if classes == test_set_Y[i]:
+         correct_predictions += 1
+   training_classification_percentage = float(correct_predictions)/len(test_set_X)
+   print "Correctly Classified:        ", correct_predictions
+   print "Percent Correctly Classified:", 100*training_classification_percentage
+
+
+   
 
 
