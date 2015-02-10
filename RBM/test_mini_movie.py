@@ -23,9 +23,13 @@ def get_RBM():
    for rate in learning_rates:
       print "Learning rate =", rate
 
-      for i in range(20):
+      for i in range(100):
          print '  ' + str(i) + '...',
          r.train_epoch(dataset, rate, k)
+         PL = r.pseudolikelihood(dataset)
+         print 'Pseudolikelihood = ' + str(PL) + '...',
+         L = r.likelihood(dataset)
+         print 'Likelihood = ' + str(L) + '...',
          print 'Done'
 
 

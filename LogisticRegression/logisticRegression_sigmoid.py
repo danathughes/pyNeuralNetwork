@@ -27,6 +27,16 @@ class LogisticRegressionModel:
       self.weights = np.zeros((numVariables + 1, numOutputs))     
 
 
+   def randomize_weights(self):
+      """
+      Set all the weights to a value in the range of 1/fan_in
+      """
+
+      for i in range(self.N+1):
+         for j in range(self.M):
+            self.weights[i,j] = (random.random()-0.5)/(2.0*self.N)
+
+
    def sigmoid(self, z):
       """
       """
@@ -54,6 +64,8 @@ class LogisticRegressionModel:
    def gradient(self, data, output):
       """
       Determine the gradient of the parameters given the data and labels
+
+      Gradient for the sigmoid output is dy/dx = x*y*(1-y)
       """
 
       gradient = np.zeros((self.N + 1, self.M)) 
@@ -62,12 +74,22 @@ class LogisticRegressionModel:
          prediction = self.predict(data[k])
 
          for j in range(self.M):
-            gradient[0,j] -= (output[k][j] - prediction[j])
+            gradient[0,j] -= output[k][j]*(1.0 - output[k][j])*(output[k][j] - prediction[j])
 
             for i in range(self.N):
-               gradient[i+1,j] -= data[k][i]*(output[k][j] - prediction[j])
+               gradient[i+1,j] -= data[k][i]*output[k][j]*(1.0 - output[k][j])*(output[k][j] - prediction[j])
   
       return gradient/len(data)
+
+
+   def train_epoch(self, data, output, learning_rate = 0.1):
+      """
+      Train once on each of the items in the provided dataset
+      """
+
+      gradient = np.array(self.gradient(data, output))
+      self.weights -= learning_rate * gradient
+
 
 
    def train_batch(self, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000):
@@ -129,12 +151,7 @@ class LogisticRegressionModel:
       prediction = np.zeros(self.M)
 
       for i in range(self.M):         
-         prediction[i] = np.exp(self.weights[0,i] + np.sum(self.weights[1:,i]*np.array(data)))
-
-      partition = sum(prediction)
-
-      for i in range(self.M):
-         prediction[i] = prediction[i]/partition
+         prediction[i] = self.sigmoid(self.weights[0,i] + np.sum(self.weights[1:,i]*np.array(data)))
 
       return prediction
 

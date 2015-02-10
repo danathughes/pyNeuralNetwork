@@ -27,6 +27,17 @@ class LogisticRegressionModel:
       self.weights = np.zeros((numVariables + 1, numOutputs))     
 
 
+   def randomize_weights(self):
+      """
+      Set all the weights to a value in the range of 1/fan_in
+      """
+
+      for i in range(self.N+1):
+         for j in range(self.M):
+            self.weights[i,j] = (random.random()-0.5)/(self.N)
+      
+
+
    def sigmoid(self, z):
       """
       """
@@ -37,6 +48,9 @@ class LogisticRegressionModel:
    def cost(self, data, output):
       """
       Determine the cost (error) of the parameters given the data and labels
+
+      Cost for the softmax is the cross-entropy of the target and predicted 
+      output -- cost = -sum_j t_j log(y_j)
       """
 
       # Add the offset term to the data
@@ -46,14 +60,16 @@ class LogisticRegressionModel:
          prediction = self.predict(data[i])
 
          for j in range(self.M):
-            cost = cost + ((1.0-output[i][j])*np.log(1.0-prediction[j]) + output[i][j]*np.log(prediction[j]))
+            cost = cost - output[i][j]*np.log(prediction[j])
 
-      return -cost/len(data)
+      return cost
 
 
    def gradient(self, data, output):
       """
       Determine the gradient of the parameters given the data and labels
+
+      Gradient for softmax is dC/dw = dC/dy*dy/dz*dz/dw = (y-t)*x
       """
 
       gradient = np.zeros((self.N + 1, self.M)) 
@@ -68,6 +84,15 @@ class LogisticRegressionModel:
                gradient[i+1,j] -= data[k][i]*(output[k][j] - prediction[j])
   
       return gradient/len(data)
+
+
+   def train_epoch(self, data, output, learning_rate = 0.1):
+      """
+      Train once on each of the items in the provided dataset
+      """
+
+      gradient = np.array(self.gradient(data, output))
+      self.weights -= learning_rate * gradient
 
 
    def train_batch(self, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000):
