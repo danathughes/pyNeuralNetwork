@@ -14,7 +14,8 @@ def train_epoch(model, data, output, learning_rate = 0.1):
    """
 
    gradient = np.array(model.gradient(data, output))
-   model.update_weights(-learning_rate * gradient)
+   dW = [-learning_rate * grad for grad in gradient]
+   model.update_weights(dW)
 
 
 def train_batch(model, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000, logger=None, test_data=None, test_output=None):

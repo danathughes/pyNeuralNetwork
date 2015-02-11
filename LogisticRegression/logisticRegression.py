@@ -32,7 +32,7 @@ def cost_sigmoid(model, dataset, outputs):
       for j in range(model.M):
          cost = cost - ((1.0-outputs[i][j])*np.log(1.0-prediction[j]) + outputs[i][j]*np.log(prediction[j]))
 
-   return cost
+   return cost/len(dataset)
 
 
 def cost_softmax(model, dataset, outputs):
@@ -48,7 +48,7 @@ def cost_softmax(model, dataset, outputs):
       for j in range(model.M):
          cost = cost - outputs[i][j]*np.log(prediction[j])
 
-   return cost
+   return cost/len(dataset)
 
 
 
@@ -155,19 +155,16 @@ class LogisticRegressionModel:
             self.weights[i,j] = (random.random()-0.5)/(2.0*self.N)
 
 
-   def sigmoid(self, z):
-      """
-      """
-
-      return 1.0/(1.0+np.exp(-z))
-
-
    def cost(self, dataset, outputs):
       """
       Determine the cost (error) of the parameters given the data and labels
       """
 
       return self.activation_cost(self, dataset, outputs)
+
+
+   def sigmoid(self, z):
+      return 1.0/(1.0 + np.exp(-z))
 
 
    def gradient(self, dataset, outputs):
@@ -177,7 +174,7 @@ class LogisticRegressionModel:
       Gradient for the sigmoid output is dy/dx = x*y*(1-y)
       """
 
-      return self.activation_gradient(self, dataset, outputs)
+      return [self.activation_gradient(self, dataset, outputs)]
 
 
    def update_weights(self, dW):
@@ -185,7 +182,8 @@ class LogisticRegressionModel:
       Update the weights in the model by adding dW
       """
 
-      self.weights += dW
+      # There's only one set of weights for regression model
+      self.weights += dW[0]
 
 
    def predict(self, data):
