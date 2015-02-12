@@ -17,10 +17,14 @@ import numpy as np
 import random
 
 ## Cost and gradient functions
+## TODO:  Ensure these are correct, and rename them appropriately.
+##        i.e., cross-entropy and squared error
+## TODO:  VECTORIZE THESE!
+## TODO:  Pull these out into another namespace -- they're just functions!
 
 def cost_sigmoid(model, dataset, outputs):
    """
-   Cost function for sigmoid output units
+   Using squared error between predictions and targets as cost
    """
 
    # Add the offset term to the data
@@ -37,7 +41,7 @@ def cost_sigmoid(model, dataset, outputs):
 
 def cost_softmax(model, dataset, outputs):
    """
-   Cost function for softmax output units (i.e., cross-entropy error
+   Cost function for softmax output units (i.e., cross-entropy error)
    """
 
    cost = 0.0
@@ -46,7 +50,7 @@ def cost_softmax(model, dataset, outputs):
       prediction = model.predict(dataset[i])
 
       for j in range(model.M):
-         cost = cost - outputs[i][j]*np.log(prediction[j])
+         cost = cost + 0.5*(outputs[i][j]*np.log(prediction[j]))**2
 
    return cost/len(dataset)
 

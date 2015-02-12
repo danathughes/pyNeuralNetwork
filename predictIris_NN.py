@@ -38,7 +38,7 @@ if __name__ == '__main__':
    numVariables = len(training_set_X[0])
 
    # Create the model
-   NN = NeuralNetwork([numVariables, 4, 3], [None, SIGMOID, SIGMOID])
+   NN = NeuralNetwork([numVariables, 4, 3], [None, SIGMOID, SOFTMAX])
 
    logger.log_setup(NN, training_set_X, training_set_Y, test_set_X, test_set_Y)
 

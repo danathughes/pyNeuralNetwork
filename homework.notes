@@ -1,8 +1,11 @@
 Part 1
 LR model with sigmoid logistic unit
-Training schedule - batch training - reduce learining rate when training cost difference < 0.001
+Training schedule - batch training - reduce learining rate when training cost difference < 0.0025
 150 iterations, learnining rate 0.9 
-Saved output to logger.output after 142 iterations
+
+reduce learning rate to 0.5 - 
+
+Saved output to logger.output after 150 iterations
 Saved model - write M N
 Write M lines with N entries for weights
 

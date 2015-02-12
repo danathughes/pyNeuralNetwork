@@ -210,7 +210,7 @@ class NeuralNetwork:
       if activation_function == SIGMOID:
          return 1.0/(1.0 + np.exp(-z))
       elif activation_function == SOFTMAX:
-         activity = 1.0/(1.0 + np.exp(-z))
+         activity = np.exp(-z)
          partition = np.sum(activity)
          return activity/partition
       elif activation_function == TANH:
@@ -230,7 +230,7 @@ class NeuralNetwork:
       if activation_function == SIGMOID:
          return a*(1.0 - a)
       elif activation_function == SOFTMAX:
-         return None
+         return -1.0
       elif activation_function == TANH:
          return 1.0 - a**2
       elif activation_function == RELU:

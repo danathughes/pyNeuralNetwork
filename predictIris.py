@@ -44,7 +44,6 @@ if __name__ == '__main__':
    logger.log_setup(LR, training_set_X, training_set_Y, test_set_X, test_set_Y)
 
    # Train the model
-   training.train_batch(LR, training_set_X, training_set_Y, 0.5, 0.0001, 200, logger, test_set_X, test_set_Y)
+   training.train_batch(LR, training_set_X, training_set_Y, 0.9, 0.0001, 200, logger, test_set_X, test_set_Y)
 
-
-
+   logger.log_results(LR, training_set_X, training_set_Y, test_set_X, test_set_Y)
