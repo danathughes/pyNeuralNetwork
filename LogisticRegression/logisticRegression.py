@@ -30,8 +30,20 @@ def cost_sigmoid(model, dataset, outputs):
    # Add the offset term to the data
    cost = 0.0
 
+<<<<<<< HEAD
    for i in range(len(dataset)):
       prediction = model.predict(dataset[i])
+=======
+      # Set the weights to zero, including an extra weight as the offset
+      self.N = numVariables
+      self.M = numOutputs
+      #theta trans:  create transposed weights matrix (rows = 4 variables + 1 offset, cols=3 output flowers)
+      self.weights = np.zeros((numVariables + 1, numOutputs))
+   #   for i in range(self.N+1):
+   #       for j in range(self.M):
+   #           self.weights[i,j] = random.random()
+     
+>>>>>>> 5b158f42beda755dc4598b71e5078d6cdb3cbfac
 
       for j in range(model.M):
          cost = cost - ((1.0-outputs[i][j])*np.log(1.0-prediction[j]) + outputs[i][j]*np.log(prediction[j]))

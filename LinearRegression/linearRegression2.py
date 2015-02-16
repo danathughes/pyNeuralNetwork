@@ -22,25 +22,29 @@ class LinearRegressionModel:                                                  ##
 
       # Set the weights to zero, including an extra weight as the offset
       self.N = numVariables                                                   ## New class attribute N - number of variables
-      self.weights = np.zeros(numVariables + 1)                               ## New class attribute weights(coefficients) # of variables + 1 for the offset No
+      ## New class attribute weights(coefficients) # of variables + 1 for the offset No
+      self.weights = np.zeros(numVariables + 1)
+      ## assign random weights
       for i in range(self.N):
-          self.weights[i] = random.random()                                   ## assign random weights
+          self.weights[i] = random.random()
      
-
-   def cost(self, data, output):                                              # data is x axis values?
+   #cost function taking data: X training data (variables) output: Y training data
+   def cost(self, data, output):
       """
       """
 
       # Add the offset term to the data
       cost = 0.0
 
-      for i in range(len(data)):                                              ##
-         prediction = self.predict(data[i])                                   ##predict output value for each x-data value
-         error = prediction - output[i]                                       ## calculate error for each prediction
+      #for entire training data set calculate the running cost= square error
+      for i in range(len(data)):
+         # predict ( sum(random weights * data set's variables))
+         prediction = self.predict(data[i])
+         ## calculate error for each prediction
+         error = prediction - output[i]
          cost = cost + error**2
-
-
-      return cost/2                                                           ## returns the total "Cost" output from predictions  (Why not divide by average?)
+      #linear regression cost function J(O) =1/2m * sum(h(x)-y)^2 .
+      return cost/2/len(data)
 
 
    def gradient(self, data, output):
@@ -48,33 +52,37 @@ class LinearRegressionModel:                                                  ##
       Return the gradient of the cost function wrt weights given the data and
       ground truth
       """
-
+      # create a null vector based on # of variables + 1 for offset term
       gradient = np.zeros(self.N + 1)
-
+      # create a vector of predicted values (weights * feature values)
       prediction = self.predict_vector(np.array(data))
       errors = prediction - np.array(output)
+      gradient[0] = np.sum(errors)
 
-      gradient[0] = np.sum(errors)/2
-
+      # for each feature
       for j in range(self.N):
+         #j+1 to shift the index since grad[0] has already been set
          gradient[j+1] = 0
+         #for each training set
          for i in range(len(errors)):
+            #running total adding gradient for each row of each column
             gradient[j+1] = gradient[j+1] + data[i][j] * errors[i]
-         gradient[j+1] = gradient[j+1]/2
-
+         gradient[j+1] = gradient[j+1]
+      #returns gradient vector of errors for each feature [1x8]
       return gradient
 
 
    def train_batch(self, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000):
       """
       """
-
+      #epochs= # of times gradient descent runs
       epoch = 0
 
       while self.cost(data, output) > convergence and epoch < maxEpochs:
          print "Epoch", epoch, "- Cost:", self.cost(data,output)
          epoch+=1
          gradient = np.array(self.gradient(data, output))
+         #update weights = theta - learning rate *  1/m*sum of errors
          self.weights -= learning_rate * gradient / len(data)
 
 
@@ -141,8 +149,8 @@ class LinearRegressionModel:                                                  ##
                self.weights[j+1] -= learning_rate * error * data[i][j]
  
 
-
-   def predict(self, data):                                                              ## Predict function?
+   # Predict function
+   def predict(self, data):
       """
       """
 
@@ -152,7 +160,6 @@ class LinearRegressionModel:                                                  ##
    def predict_vector(self, data):
       """
       """
+      return(np.dot(np.array(data),self.weights[0:7].T))
 
-      return self.weights[0] + np.sum(self.weights[1:] * np.array(data), 1)
 
-      
