@@ -10,6 +10,8 @@
 ##   1.02  Added capability to have different activations
 ##   1.03  Add weight decay 
 ##   1.04  Pull out training functionality to work with Training.training
+##   1.05  Separate biases into a separate array, to make things a bit more 
+##         clear.  Fix Back propagation
 
 import numpy as np
 import random
@@ -157,16 +159,24 @@ class NeuralNetwork:
 
       # Set up the weight matrices
       self.weights = []
+      self.biases = []
       
       for i in range(1,len(layers)):
-         self.weights.append(np.zeros((layers[i], layers[i-1] + 1)))
+         self.weights.append(np.zeros( (layers[i], layers[i-1]) ))
+         self.biases.append(np.zeros( (layers[i], 1) ))
+     
 
-      # Initialize the weights to small random values
-      for i in range(len(self.weights)):
+   def randomize_weights(self):
+      """
+      Initialize the wiehgts to small random values
+      """
+
+      for i in range(self.numLayers):
          for j in range(self.weights[i].shape[0]):
             for k in range(self.weights[i].shape[1]):
-               self.weights[i][j,k] = 0.02*random.random() - 0.01
-     
+                self.weights[i][j,k] = 0.02*random.random() - 0.01
+             self.biases[i][j,0] = 0.02 * random.random() - 0.01
+
 
    def printNN(self):
       """
@@ -321,7 +331,7 @@ class NeuralNetwork:
 
    def forwardprop(self, data):
       """
-      Perform forward propagation, giving the activations at each layer
+      Perform forward propagation, returning the activations at each layer
       """
 
       x = np.array(data)
