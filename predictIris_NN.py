@@ -38,11 +38,11 @@ if __name__ == '__main__':
    numVariables = len(training_set_X[0])
 
    # Create the model
-   NN = NeuralNetwork([numVariables, 4, 3], [None, SIGMOID, SOFTMAX])
+   NN = NeuralNetwork([numVariables, 6, 3]) #, [None, SIGMOID, SIGMOID])
 
    logger.log_setup(NN, training_set_X, training_set_Y, test_set_X, test_set_Y)
 
    # Train the model
-   training.train_batch(NN, training_set_X, training_set_Y, 0.9, 0.001, 500, logger, test_set_X, test_set_Y)
+   training.train_batch_with_momentum(NN, training_set_X, training_set_Y, 0.5, 0.5, 0.001, 200, logger, test_set_X, test_set_Y)
 
    logger.log_results(NN, training_set_X, training_set_Y, test_set_X, test_set_Y)
