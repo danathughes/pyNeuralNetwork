@@ -14,11 +14,12 @@ def train_epoch(model, data, output, learning_rate = 0.1, momentum = None):
    Train once on each of the items in the provided dataset
    """
 
-   gradient = np.array(model.gradient(data, output))
+   gradient = model.gradient(data, output)
+
    if momentum == None:
       dW = [-learning_rate * grad for grad in gradient]
    else:
-      dW = [-learning_rate * grad + grad_momentum for grad,grad_momentum in zip(gradient, momentum)]
+      dW = [-learning_rate * grad + grad_momentum for grad, grad_momentum in zip(gradient, momentum)]
    model.update_weights(dW)
 
    return dW

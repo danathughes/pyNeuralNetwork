@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import Training.training as training
 from datasets.iris import *
 import Preprocess.featureScaling as featureScaling
-import Logger.dataLogger as Logger
+import Logger.consoleLogger as Logger
 
 training_percentage = 0.8
 
@@ -38,10 +38,10 @@ if __name__ == '__main__':
    numVariables = len(training_set_X[0])
 
    # Create the model
-   LR = LogisticRegressionModel(numVariables, 3, SOFTMAX)
+   LR = LogisticRegressionModel(numVariables, 3, SOFTMAX, CROSS_ENTROPY)
    LR.randomize_weights()
 
-   logger = Logger.DataLogger()
+   logger = Logger.ConsoleLogger()
 
    logger.log_setup(LR, training_set_X, training_set_Y, test_set_X, test_set_Y)
 

@@ -14,132 +14,102 @@
 ##         Added cost / gradient functions for sigmoid and softmax layers
 ##   1.04  Changed from one large weight matrix to weights and biases
 ##         Vectorized weight randomization function
+##   1.05  Vectorized everything.  Matches neural network code.
 
 import numpy as np
 import random
 
 ## Cost and gradient functions
-## TODO:  Ensure these are correct, and rename them appropriately.
-##        i.e., cross-entropy and squared error
-## TODO:  VECTORIZE THESE!
 ## TODO:  Pull these out into another namespace -- they're just functions!
 
-def cost_sigmoid(model, dataset, outputs):
+
+def sigmoid(z):
    """
-   Using squared error between predictions and targets as cost
+   Sigmoid activation unit
    """
 
-   # Add the offset term to the data
+   return 1.0 / (1.0 + np.exp(-z))
+
+
+def gradient_sigmoid(a):
+   """
+   Gradient of the sigmoid unit for the given activation
+   """
+
+   return a * (1.0 - a)
+
+
+def softmax(z):
+   """
+   Softmax activation layer
+   """
+
+   activations = np.exp(z)
+   return activations / np.sum(activations)   
+
+
+def gradient_softmax(a):
+   """
+   Gradient of the softmax unit for the given activtaion
+   """
+
+   return a * (1.0 - a)   
+
+
+def cost_squared_error(predictions, targets):
+   """
+   Calculate the cost function of the model for the given dataset
+   """
+
+   cost = 0.0
+   
+   for prediction, target in zip(predictions, targets):
+      cost += 0.5*(target-prediction).transpose().dot(target-prediction)[0,0]
+
+   return cost
+
+
+def gradient_squared_error(prediction, target):
+   """
+   Gradient of the squared error cost function w.r.t. activation
+   """
+
+   return target - prediction
+
+
+def cost_cross_entropy(predictions, targets):
+   """
+   Calculate the cross-entropy cost
+   """
+   
    cost = 0.0
 
-   for i in range(len(dataset)):
-      prediction = model.predict(dataset[i])
-
-      for j in range(model.M):
-         cost = cost - ((1.0-outputs[i][j])*np.log(1.0-prediction[j]) + outputs[i][j]*np.log(prediction[j]))
-
-   return cost/len(dataset)
+   for prediction, target in zip(predictions, targets):
+      cost -= np.sum(target*np.log(prediction) + (1.0-target)*np.log(1.0-prediction))
+   
+   return cost
 
 
-def cost_softmax(model, dataset, outputs):
+def gradient_cross_entropy(prediction, target):
    """
-   Cost function for softmax output units (i.e., cross-entropy error)
    """
 
-   cost = 0.0
+   return (target - prediction) / (prediction * (1.0 - prediction))
 
-   for i in range(len(dataset)):
-      prediction = model.predict(dataset[i])
-
-      for j in range(model.M):
-         cost = cost + 0.5*(outputs[i][j]*np.log(prediction[j]))**2
-
-   return cost/len(dataset)
-
-
-
-def gradient_sigmoid(model, dataset, outputs):
-   """
-   Gradient for sigmoid output units
-   """
-
-   dW = np.zeros((model.N, model.M)) 
-   dB = np.zeros((1, model.M)) 
-
-   for k in range(len(dataset)):
-      prediction = model.predict(dataset[k])
-
-      for j in range(model.M):
-         dB[0,j] -= prediction[j]*(1.0 - prediction[j])*(outputs[k][j] - prediction[j])
-
-         for i in range(model.N):
-            dW[i,j] -= dataset[k][i]*prediction[j]*(1.0 - prediction[j])*(outputs[k][j] - prediction[j])
-  
-   return dW/len(dataset), dB/len(dataset)
-
-
-def gradient_softmax(model, dataset, outputs):
-   """
-   Gradient for softmax output units
-   """
-
-   dW = np.zeros((model.N, model.M)) 
-   dB = np.zeros((1, model.M))
-
-   for k in range(len(dataset)):
-      prediction = model.predict(dataset[k])
-
-      for j in range(model.M):
-         dB[0,j] -= (outputs[k][j] - prediction[j])
-
-         for i in range(model.N):
-            dW[i,j] -= dataset[k][i]*(outputs[k][j] - prediction[j])
-  
-   return dW/len(dataset), dB/len(dataset)
-
-
-def predict_sigmoid(model, data):
-   """
-   Provide a prediction for the data provided
-   """
-
-   prediction = np.zeros(model.M)
-
-   for i in range(model.M):         
-      prediction[i] = model.sigmoid(model.biases[0,i] + np.sum(model.weights[:,i]*np.array(data)))
-
-   return prediction
-
-
-def predict_softmax(model, data):
-   """
-   Provide a prediction for the data provided
-   """
-
-   prediction = np.zeros(model.M)
-
-   for i in range(model.M):         
-      prediction[i] = np.exp(model.biases[0,i] + np.sum(model.weights[:,i]*np.array(data)))
-
-   partition = sum(prediction)
-
-   for i in range(model.M):
-      prediction[i] = prediction[i]/partition
-
-   return prediction
 
 # Create constant tuples of cost / gradient pairs for use with the Logistic 
 # Regression models
 
-SIGMOID = (cost_sigmoid, gradient_sigmoid, predict_sigmoid)
-SOFTMAX = (cost_softmax, gradient_softmax, predict_softmax)
-
+SIGMOID = (sigmoid, gradient_sigmoid)
+SOFTMAX = (softmax, gradient_softmax)
+SQUARED_ERROR = (cost_squared_error, gradient_squared_error)
+CROSS_ENTROPY = (cost_cross_entropy, gradient_cross_entropy)
 
 class LogisticRegressionModel:
    """
    """
 
-   def __init__(self, numVariables, numOutputs, activation = SOFTMAX):
+   def __init__(self, numVariables, numOutputs, activation_function = SOFTMAX, cost_function = CROSS_ENTROPY):
       """
       Create a new Logistic Regression model with randomized weights
       """
@@ -147,11 +117,12 @@ class LogisticRegressionModel:
       # Set the weights to zero, including an extra weight as the offset
       self.N = numVariables
       self.M = numOutputs
-      self.weights = np.zeros((self.N, self.M))     
-      self.biases = np.zeros((1, self.M))
-      self.activation_cost = activation[0]
-      self.activation_gradient = activation[1]
-      self.activation_predict = activation[2]
+      self.weights = np.zeros((self.M, self.N))     
+      self.biases = np.zeros((self.M, 1))
+      self.cost_function = cost_function[0]
+      self.cost_gradient = cost_function[1]
+      self.activation_function = activation_function[0]
+      self.activation_gradient = activation_function[1]
 
 
    def randomize_weights(self):
@@ -168,11 +139,10 @@ class LogisticRegressionModel:
       Determine the cost (error) of the parameters given the data and labels
       """
 
-      return self.activation_cost(self, dataset, outputs)
+      predictions = [self.predict( data ) for data in dataset]
+      targets = [np.array([output]).transpose() for output in outputs]
 
-
-   def sigmoid(self, z):
-      return 1.0/(1.0 + np.exp(-z))
+      return self.cost_function(predictions, targets)/len(dataset)
 
 
    def gradient(self, dataset, outputs):
@@ -182,7 +152,22 @@ class LogisticRegressionModel:
       Gradient for the sigmoid output is dy/dx = x*y*(1-y)
       """
 
-      return self.activation_gradient(self, dataset, outputs)
+      dW = np.zeros((self.M, self.N)) 
+      dB = np.zeros((self.M, 1))
+
+      for data, output in zip(dataset, outputs):
+         prediction = self.predict(data)
+         target = np.array([output]).transpose()
+
+         cost_gradient = self.cost_gradient(prediction, target)
+         activation_gradient = self.activation_gradient(prediction)
+
+         gradient = cost_gradient * activation_gradient
+      
+         dB -= gradient
+         dW -= np.dot(gradient, np.array([data]))
+
+      return [dW/len(dataset), dB/len(dataset)]
 
 
    def update_weights(self, dW):
@@ -200,7 +185,8 @@ class LogisticRegressionModel:
       Predict the class probabilites given the data
       """
 
-      return self.activation_predict(self, data)
+      net = self.biases + np.dot(self.weights,np.array([data]).transpose())
+      return self.activation_function(net)
 
 
    def classify(self, data):
