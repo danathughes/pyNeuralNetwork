@@ -12,6 +12,8 @@
 ##         Set up model to accept cost / gradient functions, rather than
 ##         modifying specific implementations
 ##         Added cost / gradient functions for sigmoid and softmax layers
+##   1.04  Changed from one large weight matrix to weights and biases
+##         Vectorized weight randomization function
 
 import numpy as np
 import random
@@ -61,18 +63,19 @@ def gradient_sigmoid(model, dataset, outputs):
    Gradient for sigmoid output units
    """
 
-   gradient = np.zeros((model.N + 1, model.M)) 
+   dW = np.zeros((model.N, model.M)) 
+   dB = np.zeros((1, model.M)) 
 
    for k in range(len(dataset)):
       prediction = model.predict(dataset[k])
 
       for j in range(model.M):
-         gradient[0,j] -= prediction[j]*(1.0 - prediction[j])*(outputs[k][j] - prediction[j])
+         dB[0,j] -= prediction[j]*(1.0 - prediction[j])*(outputs[k][j] - prediction[j])
 
          for i in range(model.N):
-            gradient[i+1,j] -= dataset[k][i]*prediction[j]*(1.0 - prediction[j])*(outputs[k][j] - prediction[j])
+            dW[i,j] -= dataset[k][i]*prediction[j]*(1.0 - prediction[j])*(outputs[k][j] - prediction[j])
   
-   return gradient/len(dataset)
+   return dW/len(dataset), dB/len(dataset)
 
 
 def gradient_softmax(model, dataset, outputs):
@@ -80,18 +83,19 @@ def gradient_softmax(model, dataset, outputs):
    Gradient for softmax output units
    """
 
-   gradient = np.zeros((model.N + 1, model.M)) 
+   dW = np.zeros((model.N, model.M)) 
+   dB = np.zeros((1, model.M))
 
    for k in range(len(dataset)):
       prediction = model.predict(dataset[k])
 
       for j in range(model.M):
-         gradient[0,j] -= (outputs[k][j] - prediction[j])
+         dB[0,j] -= (outputs[k][j] - prediction[j])
 
          for i in range(model.N):
-            gradient[i+1,j] -= dataset[k][i]*(outputs[k][j] - prediction[j])
+            dW[i,j] -= dataset[k][i]*(outputs[k][j] - prediction[j])
   
-   return gradient/len(dataset)
+   return dW/len(dataset), dB/len(dataset)
 
 
 def predict_sigmoid(model, data):
@@ -102,7 +106,7 @@ def predict_sigmoid(model, data):
    prediction = np.zeros(model.M)
 
    for i in range(model.M):         
-      prediction[i] = model.sigmoid(model.weights[0,i] + np.sum(model.weights[1:,i]*np.array(data)))
+      prediction[i] = model.sigmoid(model.biases[0,i] + np.sum(model.weights[:,i]*np.array(data)))
 
    return prediction
 
@@ -115,7 +119,7 @@ def predict_softmax(model, data):
    prediction = np.zeros(model.M)
 
    for i in range(model.M):         
-      prediction[i] = np.exp(model.weights[0,i] + np.sum(model.weights[1:,i]*np.array(data)))
+      prediction[i] = np.exp(model.biases[0,i] + np.sum(model.weights[:,i]*np.array(data)))
 
    partition = sum(prediction)
 
@@ -143,7 +147,8 @@ class LogisticRegressionModel:
       # Set the weights to zero, including an extra weight as the offset
       self.N = numVariables
       self.M = numOutputs
-      self.weights = np.zeros((numVariables + 1, numOutputs))     
+      self.weights = np.zeros((self.N, self.M))     
+      self.biases = np.zeros((1, self.M))
       self.activation_cost = activation[0]
       self.activation_gradient = activation[1]
       self.activation_predict = activation[2]
@@ -154,9 +159,8 @@ class LogisticRegressionModel:
       Set all the weights to a value in the range of 1/fan_in
       """
 
-      for i in range(self.N+1):
-         for j in range(self.M):
-            self.weights[i,j] = (random.random()-0.5)/(2.0*self.N)
+      self.weights = np.random.uniform(-1.0/self.N, 1.0/self.N, self.weights.shape)
+      self.biases = np.random.uniform(-1.0/self.N, 1.0/self.N, self.biases.shape)
 
 
    def cost(self, dataset, outputs):
@@ -178,7 +182,7 @@ class LogisticRegressionModel:
       Gradient for the sigmoid output is dy/dx = x*y*(1-y)
       """
 
-      return [self.activation_gradient(self, dataset, outputs)]
+      return self.activation_gradient(self, dataset, outputs)
 
 
    def update_weights(self, dW):
@@ -188,6 +192,7 @@ class LogisticRegressionModel:
 
       # There's only one set of weights for regression model
       self.weights += dW[0]
+      self.biases += dW[1]
 
 
    def predict(self, data):

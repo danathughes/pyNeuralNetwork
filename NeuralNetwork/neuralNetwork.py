@@ -11,11 +11,17 @@
 ##   1.03  Add weight decay 
 ##   1.04  Pull out training functionality to work with Training.training
 ##   1.05  Separate biases into a separate array, to make things a bit more 
-##         clear.  Fix Back propagation
+##         clear.  Fix back propagation, and make it all follow the
+##         logistic regression interface.
+##   1.06  Create functions for cost, activiation and activation gradients
+##         Abstracted activations, costs and gradients in neural network
 
 import numpy as np
 import random
 
+
+# These are fine here for now, but should be moved into a separate namespace, maybe
+# Functions, as they are common to many models.
 
 def sigmoid(z):
    """
@@ -25,30 +31,201 @@ def sigmoid(z):
    return 1.0 / (1.0 + np.exp(-z))
 
 
+def gradient_sigmoid(a):
+   """
+   Gradient of the sigmoid unit for the given activation
+   """
+
+   return a * (1.0 - a)
+
+
+def softmax(z):
+   """
+   Softmax activation layer
+   """
+
+   activations = np.exp(z)
+   return activations / np.sum(activations)   
+
+
+def gradient_softmax(a):
+   """
+   Gradient of the softmax unit for the given activtaion
+   """
+
+   return a * (1.0 - a)   
+
+
+def tanh(z):
+   """
+   Hyperbolic tangent activation
+   """
+
+   return (1.0 - np.exp(-z))/(1.0 + np.exp(-z))
+
+
+def gradient_tanh(a):
+   """
+   Gradient of the hyperbolic tangent activation function
+   """
+
+   return 1.0 - a**2
+
+
+def linear(z):
+   """
+   Simple linear activation function
+   """
+
+   return z
+
+
+def gradient_linear(a):
+   """
+   Gradient of the linear activation function
+   """
+
+   return 1
+
+
+def fast_ReLU(z):
+   """
+   Simple rectified linear unit
+   """
+
+   return np.max(0, z)
+
+
+def gradient_fast_ReLU(a):
+   """
+   Gradient of the simple ReLU
+   """
+
+   gradient = a.copy()
+   gradient[gradient>0] = 1
+   gradient[gradient<0] = 0
+
+   return gradient
+
+
+def softplus(z):
+   """
+   Actual rectified linear unit / softplus
+   """
+
+   return np.log(1.0 + np.exp(z))
+   
+
+def gradient_softplus(a):
+   """
+   Gradient of the softplus function
+   """
+
+   return sigmoid(a)
+
+
+def cost_squared_error(predictions, targets):
+   """
+   Calculate the cost function of the model for the given dataset
+   """
+
+   cost = 0.0
+   
+   for prediction, target in zip(predictions, targets):
+      cost += 0.5*(target-prediction).transpose().dot(target-prediction)[0,0]
+
+   return cost
+
+
+def gradient_squared_error(prediction, target):
+   """
+   Gradient of the squared error cost function w.r.t. activation
+   """
+
+   return target - prediction
+
+
+def cost_cross_entropy(predictions, targets):
+   """
+   Calculate the cross-entropy cost
+   """
+   
+   cost = 0.0
+
+   for prediction, target in zip(predictions, targets):
+      cost -= np.sum(target*np.log(prediction) + (1.0-target)*np.log(1.0-prediction))
+   
+   return cost
+
+
+def gradient_cross_entropy(prediction, target):
+   """
+   """
+
+   return (target - prediction) / (prediction * (1.0 - prediction))
+
+
+# Group activations and gradients into tuples for simplicity
+SIGMOID = (sigmoid, gradient_sigmoid)
+SOFTMAX = (softmax, gradient_softmax)
+TANH = (tanh, gradient_tanh)
+RELU = (fast_ReLU, gradient_fast_ReLU)
+SOFTPLUS = (softplus, gradient_softplus)
+LINEAR = (linear, gradient_linear)
+
+# Similar for cost and cost gradients
+SQUARED_ERROR = (cost_squared_error, gradient_squared_error)
+CROSS_ENTROPY = (cost_cross_entropy, gradient_cross_entropy)
+
+
 class NeuralNetwork:
    """
    """
 
-   def __init__(self, layers, activation_functions = None):
+   def __init__(self, layers, activation_functions = None, cost_function = None):
       """
       Create a new Logistic Regression model with randomized weights
       """
 
-      # Set the weights to zero, including an extra weight as the offset
+      # Network layer data - number of layers, number of inputs, number of outputs
       self.N = layers[0]
       self.M = layers[-1]
       self.numLayers = len(layers)      
 
-      # Set up the weight matrices and bias terms
-      # For simplicity, keep a dummy layer
+
+      # Initialize all the weights to zero.  For simplicity, keep a "dummy" layer of 
+      # weights (which would be weights leading into the input layer...)
       self.weights = [np.zeros((0,0))]
       self.biases = [np.zeros((0,0))]
-      
+
       for i in range(1,len(layers)):
          self.weights.append(np.zeros( (layers[i], layers[i-1]) ))
          self.biases.append(np.zeros( (layers[i], 1) ))
 
 
+      # Store the activation and cost functions 
+      # Default is sigmoid activation functions, and squared error cost function
+      self.activation_functions = [None]*self.numLayers
+      self.gradient_functions = [None]*self.numLayers
+
+      if activation_functions == None:
+         for i in range(1, self.numLayers):
+            self.activation_functions[i] = SIGMOID[0]
+            self.gradient_functions[i] = SIGMOID[1]
+      else:
+         for i in range(1,self.numLayers):
+            self.activation_functions[i] = activation_functions[i][0]
+            self.gradient_functions[i] = activation_functions[i][1]
+
+      if cost_function == None:
+         self.cost_function = cost_squared_error
+         self.cost_gradient = gradient_squared_error
+      else:
+         self.cost_function = cost_function[0]
+         self.cost_gradient = cost_function[1]
+      
+       
+      # Weight symmetry *MUST* be broken.  User can set weights later if desired.
       self.randomize_weights()
      
 
@@ -57,20 +234,16 @@ class NeuralNetwork:
       Initialize the wiehgts to small random values
       """
 
-      # TODO: Vectorize this!
       # TODO: Allow control of the range of the random values
       # TODO: Allow control of the distribution of random values
 
       for i in range(1, self.numLayers):
-         print self.weights[i].shape
 
          fanin = self.weights[i].shape[1]
          fanin = 1
-
-         for j in range(self.weights[i].shape[0]):
-            for k in range(self.weights[i].shape[1]):
-                self.weights[i][j,k] = (2.0/fanin)*(random.random() - 0.5)
-            self.biases[i][j,0] = (2.0/fanin)*(random.random() - 0.5)
+         
+         self.weights[i] = np.array(np.random.uniform(-1/fanin, 1/fanin, self.weights[i].shape))
+         self.biases[i] = np.array(np.random.uniform(-1/fanin, 1/fanin, self.biases[i].shape))
 
 
    def printNN(self):
@@ -117,17 +290,10 @@ class NeuralNetwork:
 
       cost = 0.0
 
-      for i in range(len(dataset)):
-         h = self.predict(dataset[i])
-         y = np.array( [outputs[i]] ).transpose()
+      predictions = [self.predict(data) for data in dataset]
+      targets = [np.array([output]).transpose() for output in outputs]
 
-         # This is if I have squared error
-#         cost = cost + 0.5*np.dot((y-h).transpose(), (y-h))[0,0]
-
-         # This is if I have cross-entropy
-         cost = cost - np.sum(y*np.log(h) + (1.0-y)*np.log(1.0-h))
-
-      return cost/len(dataset)
+      return self.cost_function(predictions, targets)/len(dataset)
 
 
    def gradient(self, dataset, outputs):
@@ -150,20 +316,15 @@ class NeuralNetwork:
          # Do a forward pass - get the activation of each layer
          activations = self.activate(data)
 
-         # Perform backpropagation now
-         # Start with the output layer
+         # Perform backpropagation
+         # The first delta is the gradient of the cost function (dE/dz) times the gradient of the activation (dz/dy)
 
-         # This is if I have sigmoid units
-#         deltas = [(target - activations[-1])*activations[-1]*(1.0-activations[-1])]
-
-         # This is if I have softmax units
-         deltas = [(target - activations[-1])]
-
+         deltas = [self.cost_gradient(activations[-1], target) * self.gradient_functions[-1](activations[-1])]
 
          # Now do hidden layers
          for i in range(self.numLayers-1, 1, -1):
             delta = np.dot(self.weights[i].transpose(), deltas[0])
-            delta *= activations[i-1]*(1.0 - activations[i-1])
+            delta *= self.gradient_functions[i-1](activations[i-1])
             deltas = [delta] + deltas
 
          # Update the weights using the forward pass and backpropagation pass
@@ -206,7 +367,8 @@ class NeuralNetwork:
       for i in range(1, self.numLayers):
          # The activation of each layer is simply the activation of the output of the
          # previous layer plus the bias
-         activations.append(sigmoid(self.biases[i] + np.dot(self.weights[i], activations[-1]) ))
+         net = self.biases[i] + np.dot(self.weights[i], activations[-1])
+         activations.append(self.activation_functions[i](net))
 
       return activations
          
