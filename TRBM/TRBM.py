@@ -2,6 +2,8 @@ import numpy as np
 import random
 import copy
 
+from Functions.functions import sigmoid
+
 class TRBM:
    """
    """
@@ -45,35 +47,16 @@ class TRBM:
       Set all weights and biases to a value between [-range/2 and range/2]
       """
 
-      for i in range(self.num_visible):
-         for j in range(self.num_hidden):
-            self.weights[i,j] = value_range*random.random() - value_range/2
+      self.weights = np.array(np.random.uniform(-value_range/2, value_range/2, self.weights.shape))
 
-      for i in range(self.num_visible):
-         self.bias_visible[i,0] = value_range*random.random() - value_range/2
+      self.bias_visible = np.array(np.random.uniform(-value_range/2, value_range/2, self.bias_visible.shape))
 
-      for i in range(self.num_hidden):
-         self.bias_hidden[i,0] = value_range*random.random() - value_range/2
+      self.bias_hidden = np.array(np.random.uniform(-value_range/2, value_range/2, self.bias_hidden.shape))
 
       for n in range(self.num_delays):
-         for i in range(self.num_visible):
-            for j in range(self.num_hidden):
-               self.C[n][i,j] = value_range*random.random() - value_range/2
-
-         for i in range(self.num_visible):
-            for j in range(self.num_visible):
-               self.A[n][i,j] = value_range*random.random() - value_range/2
-
-         for i in range(self.num_hidden):
-            for j in range(self.num_hidden):
-               self.B[n][i,j] = value_range*random.random() - value_range/2
-
-
-   def sigmoid(self, z):
-      """
-      """
-
-      return 1.0 / (1.0 + np.exp(-z))
+         self.C[n] = np.array(np.random.uniform(-value_range/2, value_range/2, self.C[n].shape))
+         self.B[n] = np.array(np.random.uniform(-value_range/2, value_range/2, self.B[n].shape))
+         self.A[n] = np.array(np.random.uniform(-value_range/2, value_range/2, self.A[n].shape))
 
 
 
@@ -122,7 +105,7 @@ class TRBM:
 
       # H = sigmoid(W'V_t + B_H(V_{t-m...t-1}, H{t-m...t-1}))
       B_H = self.get_bias_hidden(visibles[1:], hiddens)
-      return self.sigmoid(np.dot(self.weights.transpose(), visibles[0]) + B_H)
+      return sigmoid(np.dot(self.weights.transpose(), visibles[0]) + B_H)
 
 
    def get_probability_visible(self, visibles, hidden):
@@ -135,31 +118,70 @@ class TRBM:
       """
 
       B_V = self.get_bias_visible(visibles)
-      return self.sigmoid(np.dot(self.weights, hidden) + B_V)
+      return sigmoid(np.dot(self.weights, hidden) + B_V)
 
 
-# TODO:
-   def sample_visible(self, hidden):
+   def sample_visible(self, visibles, hiddens):
       """
       Generate a sample of the visible layer given the hidden layer.
       """
 
-      P_visible = self.get_probability_visible(hidden)
+      P_visible = self.get_probability_visible(visibles, hiddens)
 
       v_sample = [1.0 if random.random() < p else 0.0 for p in P_visible]
       return np.array([v_sample]).transpose()
 
 
-# TODO:
-   def sample_hidden(self, visible):
+   def sample_hidden(self, visibles, hiddens):
       """
       Generate a sample of the hidden layer given the visible layer.
       """
 
-      P_hidden = self.get_probability_hidden(visible)
+      P_hidden = self.get_probability_hidden(visibles, hiddens)
 
       h_sample = [1.0 if random.random() < p else 0.0 for p in P_hidden]
       return np.array([h_sample]).transpose()
 
 
+   def contrastive_divergence(self, visibles, k=1):
+      """
+      Perform CD-k for the given subsequence
+      """
+
+      # Calculate an h0 given the v0
+      h0 = self.sample_hidden(v0)
+
+      # We'll need to iteratively sample to get the next values.  We'll start
+      # with k=0 and iterate
+      vk = v0
+      hk = h0
+
+      # Now calculate vk and hk
+      for i in range(k):
+         vk = self.sample_visible(hk)
+         hk = self.sample_hidden(vk)
+
+      # Compute positive and negative as the outer product of these
+      positive = np.dot(v0, h0.transpose())
+      negative = np.dot(vk, hk.transpose())
+
+      # Calculate the delta-weight and delta-biases
+      delta_weights = positive - negative
+      delta_visible_bias = v0 - vk
+      delta_hidden_bias = h0 - hk
+
+      # Return these--let the learning rule handle them
+      return delta_weights, delta_visible_bias, delta_hidden_bias
+
+
+   def train_epoch(self, dataset, learning_rate = 0.001, k = 1):
+      """
+      """
+
+      for data in dataset:
+         dW, db_vis, db_hid = self.contrastive_divergence(np.array([data]).transpose(), k)
+
+         self.weights = self.weights + learning_rate*dW
+         self.bias_hidden = self.bias_hidden + learning_rate*db_hid
+         self.bias_visibile = self.bias_visible + learning_rate*db_vis
 

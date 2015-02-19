@@ -61,9 +61,12 @@ class ConsoleLogger:
          if classes == test_labels[i]:
             correct_test_predictions += 1
 
-
-      print "Epoch #" + str(epoch_number) + ":",
-      print "  Training Set Cost -", model.cost(training_data, training_labels)
+      if epoch_number % 25 == 0:
+         print "Epoch #" + str(epoch_number) + ":",
+         print "  Training Set Cost -", model.cost(training_data, training_labels)
+         print "  Test Set Cost -", model.cost(test_data, test_labels)
+         print "  Training Set Accuracy -", 100.0*correct_training_predictions/len(training_data) 
+         print "  Test Set Accuracy -", 100.0*correct_test_predictions/len(test_data) 
 
 
    def log_results(self, model=None, training_data=None, training_labels=None, test_data=None, test_labels=None):

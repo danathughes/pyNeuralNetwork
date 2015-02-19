@@ -79,7 +79,6 @@ class RBM:
       return PL
 
 
-
    def randomize_weights_and_biases(self, value_range = 1):
       """
       Set all weights and biases to a value between [-range/2 and range/2]

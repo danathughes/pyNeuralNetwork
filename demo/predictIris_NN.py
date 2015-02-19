@@ -38,7 +38,7 @@ if __name__ == '__main__':
    numVariables = len(training_set_X[0])
 
    # Create the model
-   NN = NeuralNetwork([numVariables, 6, 3], [None, TANH, SOFTMAX], CROSS_ENTROPY)
+   NN = NeuralNetwork([numVariables, 3, 3], [None, SIGMOID, SOFTMAX], CROSS_ENTROPY)
 
    # Create a logger to log training and results
    logger = Logger.ConsoleLogger()

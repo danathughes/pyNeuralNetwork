@@ -15,14 +15,14 @@ if __name__ == '__main__':
    numVariables = len(training_set_X[0])
 
    # Create the model
-   NN = NeuralNetwork([numVariables, 15, 10], [None, TANH, SOFTMAX], CROSS_ENTROPY)
+   NN = NeuralNetwork([numVariables, 10, 10], [None, SOFTPLUS, SOFTMAX], CROSS_ENTROPY)
    NN.randomize_weights()
 
 
    logger = Logger.ConsoleLogger()
 
    # Train the model
-   training.train_batch_with_momentum(NN, training_set_X, training_set_Y, 0.8, 0.8, 0.01, 100, logger, test_set_X, test_set_Y)
+   training.train_batch_with_momentum(NN, training_set_X, training_set_Y, 0.8, 0.8, 0.01, 300, logger, test_set_X, test_set_Y)
 
    logger.log_results(NN, training_set_X, training_set_Y, test_set_X, test_set_Y)
 
