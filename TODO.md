@@ -1,6 +1,10 @@
 TODO
 ====
 
+* 20-Feb-2015
+
+* * Maybe make UML class diagram or something
+
 * 17-Feb-2015
 
 * * Work on the Training module - perhaps have a single Teacher class with a couple of lists of functions
