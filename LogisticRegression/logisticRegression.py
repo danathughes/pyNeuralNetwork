@@ -86,6 +86,14 @@ class LogisticRegressionModel:
       return [dW/len(dataset), dB/len(dataset)]
 
 
+   def get_weights(self):
+      """
+      Provide the weights and biases
+      """
+
+      return [self.weights, self.biases]
+
+
    def update_weights(self, dW):
       """
       Update the weights in the model by adding dW

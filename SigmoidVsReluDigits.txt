@@ -1,0 +1,67 @@
+		SIGMOID_1	SOFTPLUS_1	SIGMOID_2	SOFTPLUS_2	SIGMOID_3	SOFTPLUS_3	SIGMOID_4	SOFTPLUS_4
+0		
+  Train Cost	3.6039
+  Test Cost	3.6376
+  Train Acc	11.04%
+  Test Acc	10.56%
+25
+  Train Cost	1.9526
+  Test Cost	2.1367
+  Train Acc	66.48%
+  Test Acc	60.48%
+50
+  Train Cost	1.2728
+  Test Cost	1.5221
+  Train Acc	79.24%
+  Test Acc	71.48%
+75
+  Train Cost	0.9569
+  Test Cost	1.2405
+  Train Acc	84.56%
+  Test Acc  	76.16%
+100
+  Train Cost	0.7906
+  Test Cost	1.0930
+  Train Acc	87.44%
+  Test Acc	79.28%
+125
+  Train Cost	0.6915
+  Test Cost	1.0132
+  Train Acc	88.88%
+  Test Acc	80.68%
+150
+  Train Cost	0.6234
+  Test Cost	0.9636
+  Train Acc	90.2%
+  Test Acc	81.72%
+175
+  Train Cost	0.5726
+  Test Cost	0.9302
+  Train Acc	90.8%
+  Test Acc	82.8%
+200
+  Train Cost	0.5327
+  Test Cost	0.9066
+  Train Acc	91.52%
+  Test Acc	83.28%
+225
+  Train Cost	
+  Test Cost
+  Train Acc
+  Test Acc
+250
+  Train Cost
+  Test Cost
+  Train Acc
+  Test Acc
+275
+  Train Cost
+  Test Cost
+  Train Acc
+  Test Acc
+300
+  Train Cost
+  Test Cost
+  Train Acc
+  Test Acc
+

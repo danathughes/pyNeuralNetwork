@@ -4,11 +4,12 @@
 
 from LogisticRegression.logisticRegression import *
 import random
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import Training.training as training
 from datasets.iris import *
 import Preprocess.featureScaling as featureScaling
-import Logger.consoleLogger as Logger
+import Logger.graphLogger as Logger
+from Training.teacher import *
 
 training_percentage = 0.8
 
@@ -38,23 +39,19 @@ if __name__ == '__main__':
    numVariables = len(training_set_X[0])
 
    # Create the model
-   LR = LogisticRegressionModel(numVariables, 3, SOFTMAX, CROSS_ENTROPY)
+   LR = LogisticRegressionModel(numVariables, 3, SIGMOID, CROSS_ENTROPY)
    LR.randomize_weights()
 
-   logger = Logger.ConsoleLogger()
+   logger = Logger.GraphLogger(LR, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
 
-   logger.log_setup(LR, training_set_X, training_set_Y, test_set_X, test_set_Y)
+   logger.log_setup()
 
    # Train the model
-   training.train_batch(LR, training_set_X, training_set_Y, 0.9, 0.0001, 200, logger, test_set_X, test_set_Y)
+   teacher = Teacher(LR, logger)
+   teacher.add_weight_update(0.9, gradient_descent)
+   teacher.add_weight_update(0., momentum)
+   teacher.add_weight_update(0.000, weight_decay)
+   teacher.train_batch(training_set_X, training_set_Y, 0.0001, 200)
 
-   logger.log_results(LR, training_set_X, training_set_Y, test_set_X, test_set_Y)
+   logger.log_results()
 
-   plt.figure(1)
-   plt.plot(range(200), logger.training_costs, 'bo', range(200), logger.test_costs, 'r+')
-   plt.show()
-
-   plt.figure(2)
-   plt.plot(range(200), logger.training_accuracy, 'bo', range(200), logger.test_accuracy, 'r+')
-   plt.show()
- 

@@ -34,7 +34,7 @@ def train_batch(model, data, output, learning_rate = 0.1, convergence = 0.0001, 
 
    while model.cost(data, output) > convergence and epoch < maxEpochs:
       if logger:
-         logger.log_training(epoch, model, data, output, test_data, test_output)
+         logger.log_training(epoch)
       epoch+=1
       train_epoch(model, data, output, learning_rate)
       
@@ -50,7 +50,7 @@ def train_batch_with_momentum(model, data, output, learning_rate = 0.1, momentum
 
    while model.cost(data, output) > convergence and epoch < maxEpochs:
       if logger:
-         logger.log_training(epoch, model, data, output, test_data, test_output)
+         logger.log_training(epoch)
       epoch+=1
       dW = train_epoch(model, data, output, learning_rate, dW)
       dW = [momentum*grad for grad in dW]
@@ -66,7 +66,7 @@ def train_minibatch(model, data, output, learning_rate = 0.1, convergence = 0.00
    while model.cost(data, output) > convergence and epoch < maxEpochs:
 
       if logger:
-         logger.log_training(epoch, model, data, output, test_data, test_output)
+         logger.log_training(epoch)
 
       epoch+=1
 
@@ -86,7 +86,7 @@ def train_stochastic(model, data, output, learning_rate = 0.1, convergence = 0.0
 
    while model.cost(data, output) > convergence and epoch < maxEpochs:
       if logger:
-         logger.log_training(epoch, model, data, output, test_data, test_output)
+         logger.log_training(epoch)
 
       epoch+=1
       for i in range(len(data)):

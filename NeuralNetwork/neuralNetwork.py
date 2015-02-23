@@ -187,6 +187,14 @@ class NeuralNetwork:
       return dW + dB
          
 
+   def get_weights(self):
+      """
+      Provide the weights and biases
+      """
+
+      return self.weights + self.biases
+
+
 
    def update_weights(self, update):
       """

@@ -11,7 +11,10 @@ def get_RBM():
               [1,1,1,0,0,0],
               [0,0,1,1,1,0],
               [0,0,1,1,1,0],
-              [0,0,1,1,1,0]]
+              [0,0,1,1,1,0],
+              [0,1,0,0,0,1],
+              [0,1,0,0,0,1],
+              [0,1,1,0,0,1]]
 
    # Train at the following learning rates:
 
@@ -26,6 +29,8 @@ def get_RBM():
       for i in range(100):
          print '  ' + str(i) + '...',
          r.train_epoch(dataset, rate, k)
+         err = np.sum([r.free_energy(data) for data in dataset])
+         print 'Energy = ' + str(err) + '...',
          PL = r.pseudolikelihood(dataset)
          print 'Pseudolikelihood = ' + str(PL) + '...',
          L = r.likelihood(dataset)

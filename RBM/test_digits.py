@@ -9,7 +9,7 @@ def get_RBM():
    r = RBM(196,50)
 
    # Train at the following learning rates:
-
+pu
    print "Training..."
 
    learning_rates = [0.1, 0.05, 0.01, 0.005, 0.001]
