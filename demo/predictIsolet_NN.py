@@ -3,7 +3,10 @@ import Training.training as training
 import random
 import matplotlib.pyplot as plt
 from datasets.isolet import *
-import Logger.consoleLogger as Logger
+from Logger.graphLogger import *
+from Logger.consoleLogger import *
+from Logger.compositeLogger import *
+from Training.teacher import *
 
 
 if __name__ == '__main__':
@@ -19,17 +22,21 @@ if __name__ == '__main__':
    NN.randomize_weights()
 
 
-   logger = Logger.ConsoleLogger()
+   graphLogger = GraphLogger(NN, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
+   consoleLogger = ConsoleLogger(NN, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
+   logger = CompositeLogger()
+   logger.add_logger(graphLogger)
+   logger.add_logger(consoleLogger)
+
+   teacher = Teacher(NN, logger)
+   teacher.add_weight_update(0.5, gradient_descent)
+   teacher.add_weight_update(0.5, momentum)
+
+   teacher.train_batch(training_set_X, training_set_Y, 0.001, 500)
+
 
    # Train the model
-   training.train_batch_with_momentum(NN, training_set_X, training_set_Y, 0.8, 0.8, 0.01, 500, logger, test_set_X, test_set_Y)
 
    logger.log_results(NN, training_set_X, training_set_Y, test_set_X, test_set_Y)
 
-#   plt.figure(1)
-#   plt.plot(range(500), logger.training_costs, 'bo', range(500), logger.test_costs, 'r+')
-#   plt.show()
 
-#   plt.figure(2)
-#   plt.plot(range(500), logger.training_accuracy, 'bo', range(500), logger.test_accuracy, 'r+')
-#   plt.show()

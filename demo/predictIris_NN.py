@@ -8,7 +8,9 @@ import matplotlib.pyplot as plt
 import Training.training as training
 from datasets.iris import *
 import Preprocess.featureScaling as featureScaling
-import Logger.consoleLogger as Logger
+from Logger.graphLogger import *
+from Logger.consoleLogger import *
+from Logger.compositeLogger import *
 from Training.teacher import *
 
 training_percentage = 0.8
@@ -42,7 +44,13 @@ if __name__ == '__main__':
    NN = NeuralNetwork([numVariables, 10, 3], [None, TANH, SOFTMAX], CROSS_ENTROPY)
 
    # Create a logger to log training and results
-   logger = Logger.ConsoleLogger(NN, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
+   graphLogger = GraphLogger(NN, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
+   consoleLogger = ConsoleLogger(NN, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
+   logger = CompositeLogger()
+   logger.add_logger(graphLogger)
+   logger.add_logger(consoleLogger)
+
+
    logger.log_setup()
 
    # Train the model

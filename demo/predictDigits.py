@@ -3,7 +3,9 @@ import Training.training as training
 import random
 import matplotlib.pyplot as plt
 from datasets.digits import *
-import Logger.consoleLogger as Logger
+from Logger.graphLogger import *
+from Logger.consoleLogger import *
+from Logger.compositeLogger import *
 from Training.teacher import *
 
 
@@ -18,7 +20,11 @@ if __name__ == '__main__':
    LR = LogisticRegressionModel(numVariables, 10, SOFTMAX)
    LR.randomize_weights()
 
-   logger = Logger.ConsoleLogger(LR, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
+   graphLogger = GraphLogger(LR, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
+   consoleLogger = ConsoleLogger(LR, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
+   logger = CompositeLogger()
+   logger.add_logger(graphLogger)
+   logger.add_logger(consoleLogger)
 
    # Train the model
    teacher = Teacher(LR, logger)

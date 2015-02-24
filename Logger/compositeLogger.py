@@ -9,20 +9,9 @@ class CompositeLogger:
    """
    """
 
-   def __init__(self, model, training_data=([], []), test_data=([], []), validation_data=([], [])):
+   def __init__(self):
       """
       """
-
-      self.model = model
- 
-      self.training_data = training_data[0]
-      self.training_labels = training_data[1]
-
-      self.test_data = test_data[0]
-      self.test_labels = test_data[1]
-
-      self.validation_data = validation_data[0]
-      self.validation_labels = validation_data[1]
 
       self.loggers = []
 
