@@ -2,7 +2,7 @@ import numpy as np
 import random
 import copy
 
-class RBM:
+class GBRBM:
    """
    """
 
@@ -21,62 +21,25 @@ class RBM:
       self.bias_visible = np.zeros((num_visible, 1))
       self.bias_hidden = np.zeros((num_hidden, 1))
 
-      self.randomize_weights_and_biases(8*np.sqrt(6.0/(self.num_hidden + self.num_visible)))
+      # A quick hack to add noise with zero mean and stdev 0.1
+      self.visible_mean = np.zeros((num_visible,1))
+      self.visible_std = np.zeros((num_visible,1)) + 0.1
+
+      self.randomize_weights_and_biases(0.001)
 
 
-   def free_energy(self, data):
+   def sigmoid(self, z):
       """
-      Calculate the free energy formula for a single datapoint
-      """
-
-      v0 = np.array([data]).transpose()
-
-      wx_b = np.dot(self.weights.transpose(), v0) + self.bias_hidden
-      vbias_term = np.dot(v0.transpose(), self.bias_visible)[0,0]
-      hidden_term = np.sum(np.log(1.0 + np.exp(wx_b)))
-
-      return - hidden_term - vbias_term
-
-
-   def pseudolikelihood(self, dataset):
-      """
-      Calculate the pseudolikelihood by stochasically approximating the 
-      log probability of each bit
       """
 
-      PL = 0
+      return 1.0 / (1.0 + np.exp(-z))
 
-      num_bits = self.num_visible
 
-      for data in dataset:
-         E_xi = self.free_energy(data)
-         bit_flip_num = random.randrange(0,num_bits)
-         data_flip = copy.copy(data)
-         data_flip[bit_flip_num] = 1 - data_flip[bit_flip_num]
-         E_xi_flip = self.free_energy(data_flip)
-         PL = PL + num_bits*np.log(self.sigmoid(E_xi_flip - E_xi))
-
-      return PL
-         
-
-   def likelihood(self, dataset):
+   def normal(self, x=0.0, sigma=1.0):
       """
-      Calculate the likelihood by calculating the log probability of each bit
       """
 
-      PL = 0
-
-      num_bits = self.num_visible
-
-      for data in dataset:
-         for i in range(num_bits):
-            E_xi = self.free_energy(data)
-            data_flip = copy.copy(data)
-            data_flip[i] = 1 - data_flip[i]
-            E_xi_flip = self.free_energy(data_flip)
-            PL = PL + np.log(self.sigmoid(E_xi_flip - E_xi))
-
-      return PL
+      return np.random.normal(x, sigma)
 
 
    def randomize_weights_and_biases(self, value_range = 1):
@@ -93,14 +56,6 @@ class RBM:
 
       for i in range(self.num_hidden):
          self.bias_hidden[i,0] = value_range*random.random() - value_range/2
-
-
-   def sigmoid(self, z):
-      """
-      """
-
-      return 1.0 / (1.0 + np.exp(-z))
-
 
 
    def get_probability_hidden(self, visible):
