@@ -33,6 +33,9 @@ class CRBM:
       self.a_visible[:,:] = 0.1
       self.a_hidden[:,:] = 0.1
 
+      # Are these needed?
+      self.lo = 0.0
+      self.hi = 1.0
 
       self.randomize_weights_and_biases()
 
@@ -87,26 +90,26 @@ class CRBM:
       """
       """
 
-      return lo + (hi - lo)*(1.0/(1.0 + np.exp(-a*x))
+      return self.lo + (self.hi - self.lo)*(1.0/(1.0 + np.exp(-a*x))
    #===== END OF ALL THAT!!! ====
 
-   def get_probability_hidden(self, visible):
-      """
-      Returns the probability of setting hidden units to 1, given the 
-      visible unit.
-      """
-
-      # h = sigmoid(W'v + c)
-      return self.sigmoid(np.dot(self.weights.transpose(), visible) + self.bias_hidden)
-
-
-   def get_probability_visible(self, hidden):
-      """
-      Returns the probability of setting visible units to 1, given the
-      hidden units.
-      """
-
-      return self.sigmoid(np.dot(self.weights, hidden) + self.bias_visible)
+#   def get_probability_hidden(self, visible):
+#      """
+#      Returns the probability of setting hidden units to 1, given the 
+#      visible unit.
+#      """
+#
+#      # h = sigmoid(W'v + c)
+#      return self.sigmoid(np.dot(self.weights.transpose(), visible) + self.bias_hidden)
+#
+#
+#   def get_probability_visible(self, hidden):
+#      """
+#      Returns the probability of setting visible units to 1, given the
+#      hidden units.
+#      """
+#
+#      return self.sigmoid(np.dot(self.weights, hidden) + self.bias_visible)
 
 
    def sample_visible(self, hidden):
@@ -114,10 +117,12 @@ class CRBM:
       Generate a sample of the visible layer given the hidden layer.
       """
 
-      P_visible = self.get_probability_visible(hidden)
+#      P_visible = self.get_probability_visible(hidden)
 
-      v_sample = [1.0 if random.random() < p else 0.0 for p in P_visible]
-      return np.array([v_sample]).transpose()
+#      v_sample = [1.0 if random.random() < p else 0.0 for p in P_visible]
+#      return np.array([v_sample]).transpose()
+
+      np.dot(self.weights, hidden) + 
 
 
    def sample_hidden(self, visible):
@@ -125,10 +130,12 @@ class CRBM:
       Generate a sample of the hidden layer given the visible layer.
       """
 
-      P_hidden = self.get_probability_hidden(visible)
+#      P_hidden = self.get_probability_hidden(visible)
 
-      h_sample = [1.0 if random.random() < p else 0.0 for p in P_hidden]
-      return np.array([h_sample]).transpose()
+#      h_sample = [1.0 if random.random() < p else 0.0 for p in P_hidden]
+#      return np.array([h_sample]).transpose()
+
+      np.dot(self.weights.transpose(), visible)
 
 
    def contrastive_divergence(self, v0, k=1):
