@@ -65,7 +65,7 @@ def show_digit(digit):
    return canvas
 
 
-def digit_gray_to_binary(digit, threshold = 0.5):
+def digit_grey_to_binary(digit, threshold = 0.5):
    """
    """
 
