@@ -1,0 +1,134 @@
+%%   Gait Recognition Research Paper List
+
+
+%%Not sure what FORCE learning method is, later in the paper they used it to generate walking running motions.
+%%Paper might not have any relevance to gait recognition...
+
+@article{sussillo2009generating,
+  title={Generating coherent patterns of activity from chaotic neural networks},
+  author={Sussillo, David and Abbott, Larry F},
+  journal={Neuron},
+  volume={63},
+  number={4},
+  pages={544--557},
+  year={2009},
+  publisher={Elsevier}
+}
+
+%%New algorithm for sequentially training the Markov Chain is developed.  
+%%Motion patterns grouped together using hierarchical agglomerative clustering based on relative distance in model space
+%%So this paper uses clustering algorithm to learn human motion
+@misc{lin2006video,
+  title={Video monitoring system employing hierarchical hidden markov model (HMM) event learning and classification},
+  author={Lin, Yun-Ting and Gutta, Srinivas and Brodsky, Tomas and Philomin, Vasanth},
+  year={2006},
+  month=jul # "~11",
+  publisher={Google Patents},
+  note={US Patent 7,076,102}
+}
+
+%%Hinton's Recurrent TRMB vs Temporal Restricted Boltzmann Machine... comparison of algorithms, with a small paragraph mentioning about the testing on human motion capture for join angles.
+@inproceedings{sutskever2009recurrent,
+  title={The recurrent temporal restricted boltzmann machine},
+  author={Sutskever, Ilya and Hinton, Geoffrey E and Taylor, Graham W},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={1601--1608},
+  year={2009}
+}
+
+%%New class of probabilistic latent variable model:Implicit Mixture of Conditional Restricted Boltzmann Machine for Human Pose Tracking
+%%**From conclusion:   introduced a new type of dynamical prior that can capture both discrete and continuous dynamics. The imCRBM should be useful for time series analysis beyond the tracking domain**
+@inproceedings{taylor2010dynamical,
+  title={Dynamical binary latent variable models for 3d human pose tracking},
+  author={Taylor, Graham W and Sigal, Leonid and Fleet, David J and Hinton, Geoffrey E},
+  booktitle={Computer Vision and Pattern Recognition (CVPR), 2010 IEEE Conference on},
+  pages={631--638},
+  year={2010},
+  organization={IEEE}
+}
+
+%%Incremental learning of human motion through online observation.
+%%propose a combined approach for online segmentation and clustering of whole body human motion patterns.
+@article{kulic2009online,
+  title={Online segmentation and clustering from continuous observation of whole body motions},
+  author={Kulic, Dana and Takano, Wataru and Nakamura, Yoshihiko},
+  journal={Robotics, IEEE Transactions on},
+  volume={25},
+  number={5},
+  pages={1158--1166},
+  year={2009},
+  publisher={IEEE}
+}
+
+%%Continuation of the research mentioned above.. two years later
+@article{kulic2011incremental,
+  title={Incremental learning of full body motion primitives and their sequencing through human motion observation},
+  author={Kuli{\'c}, Dana and Ott, Christian and Lee, Dongheui and Ishikawa, Junichi and Nakamura, Yoshihiko},
+  journal={The International Journal of Robotics Research},
+  pages={0278364911426178},
+  year={2011},
+  publisher={SAGE Publications}
+}
+
+%%RBM using data from previous timesteps to connect to current visible variable and latent variables
+%%improved blend motion styles, and different motions with single set of parameters
+@article{taylor2011two,
+  title={Two distributed-state models for generating high-dimensional time series},
+  author={Taylor, Graham W and Hinton, Geoffrey E and Roweis, Sam T},
+  journal={The Journal of Machine Learning Research},
+  volume={12},
+  pages={1025--1068},
+  year={2011},
+  publisher={JMLR. org}
+}
+
+
+%%Unsupervised hierarchical learning.
+@inproceedings{pan2009unsupervised,
+  title={Unsupervised hierarchical modeling of locomotion styles},
+  author={Pan, Wei and Torresani, Lorenzo},
+  booktitle={Proceedings of the 26th Annual International Conference on Machine Learning},
+  pages={785--792},
+  year={2009},
+  organization={ACM}
+}
+
+%%Review of deep learning and unsupervised learning for time series problems
+@incollection{mirowski2009dynamic,
+  title={Dynamic factor graphs for time series modeling},
+  author={Mirowski, Piotr and LeCun, Yann},
+  booktitle={Machine Learning and Knowledge Discovery in Databases},
+  pages={128--143},
+  year={2009},
+  publisher={Springer}
+}
+
+%% human motion stylistic prediction
+@article{matsubara2012real,
+  title={Real-time stylistic prediction for whole-body human motions},
+  author={Matsubara, Takamitsu and Hyon, Sang-Ho and Morimoto, Jun},
+  journal={Neural Networks},
+  volume={25},
+  pages={191--199},
+  year={2012},
+  publisher={Elsevier}
+}
+
+%%Comparision between four HMM based real time decodign algorithms for stylistic gait recognition
+@inproceedings{ravet2014hidden,
+  title={Hidden Markov Model Based Real-Time Motion Recognition and Following},
+  author={Ravet, Thierry and Tilmanne, Jo{\"e}lle and d'Alessandro, Nicolas},
+  booktitle={Proceedings of the 2014 International Workshop on Movement and Computing},
+  pages={82},
+  year={2014},
+  organization={ACM}
+}
+
+%%Deep Belief and RBM model using video recordings of motion for training.  Lower layers with multiple RBMs for patterns, and upper layer with one conditional RBM to determine transitions 
+@inproceedings{sukhbaatar2011robust,
+  title={Robust Generation of Dynamical Patterns in Human Motion by a Deep Belief Nets.},
+  author={Sukhbaatar, Sainbayar and Makino, Takaki and Aihara, Kazuyuki and Chikayama, Takashi},
+  booktitle={ACML},
+  pages={231--246},
+  year={2011}
+}
