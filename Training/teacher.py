@@ -9,6 +9,22 @@ import numpy as np
 import random
 
 
+# To randomize batches for minibatch learning
+def randomize_batch(data, output, numBatches):
+   """
+   """
+
+   data_batches = [[]]*numBatches
+   label_batches = [[]]*numBatches
+
+   for d, l in zip(data, output):
+      idx = random.randrange(0,numBatches)
+      data_batches[idx].append(d)
+      label_batches[idx].append(l)
+
+   return data_batches, label_batches
+
+
 # Weight update rules
 def gradient_descent(**kwargs):
    """
@@ -31,6 +47,35 @@ def weight_decay(**kwargs):
    Move the weights towards zero
    """
    return -kwargs['weights']
+
+
+# Temp!  This'll be used to ensure that a long history of costs are used to stop
+global the_costs
+the_costs = range(20)
+
+
+def stopping_criteria(cost, epoch):
+   """
+   Decide whether or not to stop training
+   """
+
+   global the_costs
+
+   stop = False
+
+   stop = stop or epoch > 500
+   stop = stop or cost < 0.1
+   
+   the_costs = the_costs[1:] + [cost]
+   cost_avg = np.mean(np.array(the_costs))
+   cost_std = np.std(np.array(the_costs))
+
+   stop = stop or ((cost_std/cost_avg) < 0.025)
+
+   stop = stop and epoch > 100
+
+   return stop
+
 
 
 class Teacher:
@@ -84,21 +129,21 @@ class Teacher:
       self.old_dW = dW
 
 
-   def train_batch(self, data, output, convergence = 0.0001, maxEpochs = 10000):
+   def train_batch(self, data, output, stopping = stopping_criteria):
       """
       Perform batch training using the provided data and labels
       """
 
       epoch = 0
 
-      while self.model.cost(data, output) > convergence and epoch < maxEpochs:
+      while not stopping(self.model.cost(data, output), epoch):
          if self.logger:
             self.logger.log_training(epoch)
          epoch+=1
          self.train(data, output)
-      
+   
 
-   def train_minibatch(self, data, output, numBatches = 10, convergence = 0.0001, maxEpochs = 10000):
+   def train_minibatch(self, data, output, numBatches = 10, stopping = stopping_criteria):
       """
       Perform batch training using the provided data and labels
       """
@@ -106,28 +151,30 @@ class Teacher:
       epoch = 0
       batchSize = int(len(data)/numBatches)
 
-      while self.model.cost(data, output) > convergence and epoch < maxEpochs:
+      while not stopping(self.model.cost(data, output), epoch):
  
          if self.logger:
             self.logger.log_training(epoch)
 
          epoch+=1
 
+         data_batches, label_batches = randomize_batch(data, output, numBatches)
+
          for i in range(numBatches):
-            batch_data = data[i*batchSize:(i+1)*batchSize]
-            batch_output = output[i*batchSize:(i+1)*batchSize]
+            batch_data = data_batches[i]
+            batch_output = label_batches[i]
 
             self.train(batch_data, batch_output)
 
 
-   def train_stochastic(self, data, output, convergence = 0.0001, maxEpochs = 10000):
+   def train_stochastic(self, data, output, stopping = stopping_criteria):
       """
       Perform stochastic (on-line) training using the data and labels
       """
 
       epoch = 0
 
-      while self.model.cost(data, output) > convergence and epoch < maxEpochs:
+      while not stopping(self.model.cost(data, output), epoch):
          if self.logger:
             self.logger.log_training(epoch, data, output, test_data, test_output)
 

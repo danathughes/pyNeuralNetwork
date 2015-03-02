@@ -8,7 +8,7 @@
 import numpy as np
 
 
-def k_fold_cross_validation(model, teacher, folds_X, folds_Y, logger = None, threshold = 0.001, num_iterations=200):
+def k_fold_cross_validation(model, teacher, folds_X, folds_Y, logger = None):
    """
    Perform k-fold cross validation on the model
    """
@@ -30,22 +30,21 @@ def k_fold_cross_validation(model, teacher, folds_X, folds_Y, logger = None, thr
 
       for j in range(num_folds):
          if i != j:
-            training_set_X += folds_X[j]
-            training_set_Y += folds_Y[j]
+            training_set_X = training_set_X + folds_X[j]
+            training_set_Y = training_set_Y + folds_Y[j]
 
-      logger.training_data = training_set_X
-      logger.training_labels = training_set_Y
-      logger.test_data = validation_set_data
-      logger.test_labels = validation_set_labels
+      logger.set_training_data(training_set_X, training_set_Y)
+      logger.set_test_data(validation_set_data, validation_set_labels)
 
       # Train the model
-      teacher.train_batch(training_set_X, training_set_Y, threshold, num_iterations)
+
+      teacher.train_minibatch(training_set_X, training_set_Y, 10)
 
       validation_costs.append(model.cost(validation_set_data, validation_set_labels))
 
       correct_predictions = 0
       for data, label in zip(validation_set_data, validation_set_labels):
-         prediction = model.classify(validation_set_data[i])
+         prediction = model.classify(data)
          if prediction == label:
             correct_predictions += 1
 
@@ -53,6 +52,7 @@ def k_fold_cross_validation(model, teacher, folds_X, folds_Y, logger = None, thr
 
       print "Fold",i,"-"
       print "  Cost:    ", validation_costs[i]
+      print "  Correct: ", correct_predictions, 'of', len(validation_set_data)
       print "  Accuracy:", validation_accuracies[i]
 
    print "Cross-Validation results:"

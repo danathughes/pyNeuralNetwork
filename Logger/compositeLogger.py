@@ -15,6 +15,14 @@ class CompositeLogger:
 
       self.loggers = []
 
+   def set_training_data(self, data, labels):
+      for logger in self.loggers:
+         logger.set_training_data(data, labels)
+
+   def set_test_data(self, data, labels):
+      for logger in self.loggers:
+         logger.set_test_data(data, labels)
+
 
    def add_logger(self, logger):
       """

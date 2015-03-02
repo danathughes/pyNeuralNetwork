@@ -28,6 +28,16 @@ class DataLogger:
       self.validation_labels = validation_data[1]
 
 
+
+   def set_training_data(self, data, labels):
+      self.training_data = data
+      self.training_labels = labels
+      
+   def set_test_data(self, data, labels):
+      self.test_data = data
+      self.test_labels = labels
+
+
    def log_setup(self):
       """
 
@@ -52,17 +62,17 @@ class DataLogger:
             correct_training_predictions += 1
 
 
-      correct_test_predictions = 0
-      for i in range(len(self.test_data)):
-         label = self.model.classify(self.test_data[i])
-         if label == self.test_labels[i]:
-            correct_test_predictions += 1
+#      correct_test_predictions = 0
+#      for i in range(len(self.test_data)):
+#         label = self.model.classify(self.test_data[i])
+#         if label == self.test_labels[i]:
+#            correct_test_predictions += 1
 
 
       self.training_costs.append(self.model.cost(self.training_data, self.training_labels))
-      self.test_costs.append(self.model.cost(self.test_data, self.test_labels))
+#      self.test_costs.append(self.model.cost(self.test_data, self.test_labels))
       self.training_accuracy.append(float(correct_training_predictions) / len(self.training_data))
-      self.test_accuracy.append(float(correct_test_predictions) / len(self.test_data))
+#      self.test_accuracy.append(float(correct_test_predictions) / len(self.test_data))
 
 
    def log_results(self):

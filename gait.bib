@@ -4,6 +4,11 @@
 %%Not sure what FORCE learning method is, later in the paper they used it to generate walking running motions.
 %%Paper might not have any relevance to gait recognition...
 
+% Describes Echo State Networks / Liquid State Machines, which have been used as Central Pattern Generators (CPG) 
+% for gait generation (see the Maass citations).  This sort of approach is nice, though, since it has some
+% biological foundation.  ESNs might be attractive for generation, as they're easy to train (just use a single 
+% layer output and backprop on that).  Classification may be a bit trickier.
+
 @article{sussillo2009generating,
   title={Generating coherent patterns of activity from chaotic neural networks},
   author={Sussillo, David and Abbott, Larry F},
@@ -15,9 +20,9 @@
   publisher={Elsevier}
 }
 
-%%New algorithm for sequentially training the Markov Chain is developed.  
-%%Motion patterns grouped together using hierarchical agglomerative clustering based on relative distance in model space
-%%So this paper uses clustering algorithm to learn human motion
+
+% Probably don't need this.
+
 @misc{lin2006video,
   title={Video monitoring system employing hierarchical hidden markov model (HMM) event learning and classification},
   author={Lin, Yun-Ting and Gutta, Srinivas and Brodsky, Tomas and Philomin, Vasanth},

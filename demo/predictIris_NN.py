@@ -60,7 +60,7 @@ if __name__ == '__main__':
    teacher.add_weight_update(0.5, gradient_descent)
    teacher.add_weight_update(0.5, momentum)
 
-   teacher.train_batch(training_set_X, training_set_Y, 0.001, 500)
+   teacher.train_batch(training_set_X, training_set_Y)
 
    # Log the results
    logger.log_results()

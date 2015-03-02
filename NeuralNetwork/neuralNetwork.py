@@ -86,7 +86,7 @@ class NeuralNetwork:
       for i in range(1, self.numLayers):
 
          fanin = self.weights[i].shape[1]
-         fanin = 1
+#         fanin = 1
          
          self.weights[i] = np.array(np.random.uniform(-1/fanin, 1/fanin, self.weights[i].shape))
          self.biases[i] = np.array(np.random.uniform(-1/fanin, 1/fanin, self.biases[i].shape))

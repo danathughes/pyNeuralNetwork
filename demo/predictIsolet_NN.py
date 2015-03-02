@@ -10,8 +10,8 @@ from Training.teacher import *
 
 
 if __name__ == '__main__':
-   training_set_X, training_set_Y = load_isolet('/home/dana/Research/DeepLearning/datasets/data/isolet_train.txt')
-   test_set_X, test_set_Y = load_isolet('/home/dana/Research/DeepLearning/datasets/data/isolet_test.txt')
+   training_set_X, training_set_Y = load_isolet('/home/dana/Desktop/Research/deepLearning/datasets/data/isolet_train.txt')
+   test_set_X, test_set_Y = load_isolet('/home/dana/Desktop/Research/deepLearning/datasets/data/isolet_test.txt')
 
 
    # How many variables?
@@ -32,7 +32,7 @@ if __name__ == '__main__':
    teacher.add_weight_update(0.5, gradient_descent)
    teacher.add_weight_update(0.5, momentum)
 
-   teacher.train_batch(training_set_X, training_set_Y, 0.001, 500)
+   teacher.train_minibatch(training_set_X, training_set_Y,10)
 
 
    # Train the model
