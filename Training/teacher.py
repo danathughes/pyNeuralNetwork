@@ -98,24 +98,7 @@ class Teacher:
          self.train(data, output)
       
 
-   def train_batch_with_momentum(self, data, output, learning_rate = 0.1, momentum = 0.5, convergence = 0.0001, maxEpochs = 10000, test_data=None, test_output=None):
-      """
-      Perform batch training using the provided data and labels
-      """
-
-      epoch = 0
-
-      dW = None
-
-      while self.model.cost(data, output) > convergence and epoch < maxEpochs:
-         if self.logger:
-            self.logger.log_training(epoch, self.model, data, output, test_data, test_output)
-         epoch+=1
-         dW = train_epoch(data, output, learning_rate, dW)
-         dW = [momentum*grad for grad in dW]
-
-
-   def train_minibatch(self, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000, numBatches = 10, test_data=None, test_output=None):
+   def train_minibatch(self, data, output, numBatches = 10, convergence = 0.0001, maxEpochs = 10000):
       """
       Perform batch training using the provided data and labels
       """
@@ -126,7 +109,7 @@ class Teacher:
       while self.model.cost(data, output) > convergence and epoch < maxEpochs:
  
          if self.logger:
-            self.logger.log_training(epoch, model, data, output, test_data, test_output)
+            self.logger.log_training(epoch)
 
          epoch+=1
 
@@ -134,10 +117,10 @@ class Teacher:
             batch_data = data[i*batchSize:(i+1)*batchSize]
             batch_output = output[i*batchSize:(i+1)*batchSize]
 
-            self.train_epoch(batch_data, batch_output, learning_rate)
+            self.train(batch_data, batch_output)
 
 
-   def train_stochastic(self, data, output, learning_rate = 0.1, convergence = 0.0001, maxEpochs = 10000, test_data=None, test_output=None):
+   def train_stochastic(self, data, output, convergence = 0.0001, maxEpochs = 10000):
       """
       Perform stochastic (on-line) training using the data and labels
       """
@@ -150,5 +133,5 @@ class Teacher:
 
          epoch+=1
          for i in range(len(data)):
-            self.train_epoch([data[i]], [output[i]])
+            self.train([data[i]], [output[i]])
 

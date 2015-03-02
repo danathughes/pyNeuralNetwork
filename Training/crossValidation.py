@@ -8,7 +8,7 @@
 import numpy as np
 
 
-def k_fold_cross_validation(model, teacher, folds_X, folds_Y, threshold = 0.001, num_iterations=200):
+def k_fold_cross_validation(model, teacher, folds_X, folds_Y, logger = None, threshold = 0.001, num_iterations=200):
    """
    Perform k-fold cross validation on the model
    """
@@ -32,6 +32,11 @@ def k_fold_cross_validation(model, teacher, folds_X, folds_Y, threshold = 0.001,
          if i != j:
             training_set_X += folds_X[j]
             training_set_Y += folds_Y[j]
+
+      logger.training_data = training_set_X
+      logger.training_labels = training_set_Y
+      logger.test_data = validation_set_data
+      logger.test_labels = validation_set_labels
 
       # Train the model
       teacher.train_batch(training_set_X, training_set_Y, threshold, num_iterations)
