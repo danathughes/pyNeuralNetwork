@@ -86,10 +86,13 @@ class NeuralNetwork:
       for i in range(1, self.numLayers):
 
          fanin = self.weights[i].shape[1]
-#         fanin = 1
+#         fanin = 100
          
-         self.weights[i] = np.array(np.random.uniform(-1/fanin, 1/fanin, self.weights[i].shape))
-         self.biases[i] = np.array(np.random.uniform(-1/fanin, 1/fanin, self.biases[i].shape))
+         self.weights[i] = np.array(np.random.uniform(-1.0, 1.0, self.weights[i].shape))
+         self.biases[i] = np.array(np.random.uniform(-1.0, 1.0, self.biases[i].shape))
+
+         self.weights[i] = self.weights[i] * 2.0 / np.sum(np.abs(self.weights[i]))
+         self.biases[i] = self.biases[i] * 2.0 / np.sum(np.abs(self.biases[i]))
 
 
    def printNN(self):
