@@ -81,15 +81,15 @@ class GraphLogger:
       # Plot the data!
       plt.subplot(121)
       xaxis = range(len(self.training_costs))
-      plt.plot(xaxis, self.training_costs, '-b')#, xaxis, self.test_costs, '-r')
-      plt.axis([0, len(xaxis), 0, np.max(self.training_costs)])# + self.test_costs)])
+      plt.plot(xaxis, self.training_costs, '-b', xaxis, self.test_costs, '-r')
+      plt.axis([0, len(xaxis), 0, np.max(self.training_costs)])
       plt.xlabel('Epoch Number')
       plt.ylabel('Cost')
       plt.title('Cost vs. Epoch')
       plt.legend(['Training Set', 'Test Set'], 'upper right')
 
       plt.subplot(122)
-      plt.plot(xaxis, self.training_accuracy, '-b')#, xaxis, self.test_accuracy, '-r')
+      plt.plot(xaxis, self.training_accuracy, '-b', xaxis, self.test_accuracy, '-r')
       plt.axis([0, len(xaxis), 0, 100])
       plt.xlabel('Epoch Number')
       plt.ylabel('Accuracy')
