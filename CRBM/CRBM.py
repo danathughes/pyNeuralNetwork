@@ -20,10 +20,8 @@ class CRBM:
       self.weights = np.zeros((num_visible, num_hidden))
       self.bias_visible = np.zeros((num_visible, 1))
       self.bias_hidden = np.zeros((num_hidden, 1))
-      self.A_visible = 0.1*np.ones((num_visible, 1))
+      self.A_visible = np.ones((num_visible, 1))
       self.A_hidden = np.ones((num_hidden, 1))
-      self.A_visible_bias = 0.1
-      self.A_hidden_bias = 1
       self.sigma = 0.2
       self.lo = 0.0
       self.hi = 1.0
@@ -101,20 +99,44 @@ class CRBM:
       delta_visible_bias = v0 - vk
       delta_hidden_bias = h0 - hk
       delta_A_hidden = h0*h0 - hk*hk
+      delta_A_visible = v0*v0 - vk*vk
 
       # Return these--let the learning rule handle them
-      return delta_weights, delta_visible_bias, delta_hidden_bias, delta_A_hidden
+      return delta_weights, delta_visible_bias, delta_hidden_bias, delta_A_visible, delta_A_hidden
 
 
-   def train_epoch(self, dataset, learning_rate = 0.001, k = 1):
+   def train_epoch(self, dataset, learning_rate = 0.5, k = 1):
       """
       """
+
+      total_err = 0.0
+
+      dW = np.zeros(self.weights.shape)
+      dB_vis = np.zeros(self.bias_visible.shape)
+      dB_hid = np.zeros(self.bias_hidden.shape)
+      dA_vis = np.zeros(self.A_visible.shape)
+      dA_hid = np.zeros(self.A_hidden.shape)
 
       for data in dataset:
-         dW, db_vis, db_hid, dA = self.contrastive_divergence(np.array([data]).transpose(), k)
+         dw, db_vis, db_hid, da_vis, da_hid = self.contrastive_divergence(np.array([data]).transpose(), k)
+         dW = dW + dw
+         dB_vis = dB_vis + db_vis
+         dB_hid = dB_hid + db_hid
+         dA_vis = dA_vis + da_vis
+         dA_hid = dA_hid + da_hid
 
-         self.weights = self.weights + learning_rate*dW
-         self.bias_hidden = self.bias_hidden + learning_rate*db_hid
-         self.bias_visible = self.bias_visible + learning_rate*db_vis
-         self.A_hidden = self.A_hidden + learning_rate*dA/(self.A_hidden*self.A_hidden)
+         total_err += np.sum(db_vis*db_vis)
 
+      dW = dW / len(dataset)
+      dB_vis = dB_vis / len(dataset)
+      dB_hid = dB_hid / len(dataset)
+      dA_vis = dA_vis / len(dataset)
+      dA_hid = dA_hid / len(dataset)
+
+      self.weights = self.weights + learning_rate*dW
+      self.bias_hidden = self.bias_hidden + learning_rate*dB_hid
+      self.bias_visible = self.bias_visible + learning_rate*dB_vis
+      self.A_hidden = self.A_hidden + learning_rate*dA_hid/(self.A_hidden*self.A_hidden)
+      self.A_visible = self.A_visible + learning_rate*dA_vis/(self.A_visible*self.A_visible)
+
+      return total_err / len(dataset)
