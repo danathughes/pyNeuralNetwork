@@ -72,18 +72,18 @@ class ConsoleLogger:
             correct_training_predictions += 1
 
 
-#      correct_test_predictions = 0
-#      for i in range(len(self.test_data)):
-#         label = self.model.classify(self.test_data[i])
-#         if label == self.test_labels[i]:
-#            correct_test_predictions += 1
+      correct_test_predictions = 0
+      for i in range(len(self.test_data)):
+         label = self.model.classify(self.test_data[i])
+         if label == self.test_labels[i]:
+            correct_test_predictions += 1
 
       if epoch_number % 1 == 0:
          print "Epoch #" + str(epoch_number) + ":"
          print "  Training Set Cost -", self.model.cost(self.training_data, self.training_labels)
-#         print "  Test Set Cost -", self.model.cost(self.test_data, self.test_labels)
+         print "  Test Set Cost -", self.model.cost(self.test_data, self.test_labels)
          print "  Training Set Accuracy -", 100.0*correct_training_predictions/len(self.training_data) 
-#         print "  Test Set Accuracy -", 100.0*correct_test_predictions/len(self.test_data) 
+         print "  Test Set Accuracy -", 100.0*correct_test_predictions/len(self.test_data) 
 
 
    def log_results(self):
@@ -101,16 +101,16 @@ class ConsoleLogger:
             correct_training_predictions += 1
 
 
-#      correct_test_predictions = 0
-#      for i in range(len(self.test_data)):
-#         label = self.model.classify(self.test_data[i])
-#         if label == self.test_labels[i]:
-#            correct_test_predictions += 1
+      correct_test_predictions = 0
+      for i in range(len(self.test_data)):
+         label = self.model.classify(self.test_data[i])
+         if label == self.test_labels[i]:
+            correct_test_predictions += 1
 
       print "Final Results:"
       print "=============="
       print "  Training Set Cost -", self.model.cost(self.training_data, self.training_labels)
-#      print "  Test Set Cost     -", self.model.cost(self.test_data, self.test_labels)
+      print "  Test Set Cost     -", self.model.cost(self.test_data, self.test_labels)
       print "  Training Accuracy -", correct_training_predictions, "/", len(self.training_data), "-", (100.0*correct_training_predictions)/len(self.training_data), "%"
-#      print "  Test Accuracy     -", correct_test_predictions, "/", len(self.test_data), "-", (100.0*correct_test_predictions)/len(self.test_data), "%"
+      print "  Test Accuracy     -", correct_test_predictions, "/", len(self.test_data), "-", (100.0*correct_test_predictions)/len(self.test_data), "%"
 

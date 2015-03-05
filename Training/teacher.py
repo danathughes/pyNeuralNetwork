@@ -51,7 +51,7 @@ def weight_decay(**kwargs):
 
 # Temp!  This'll be used to ensure that a long history of costs are used to stop
 global the_costs
-the_costs = range(20)
+the_costs = range(10)
 
 
 def stopping_criteria(cost, epoch):
@@ -63,7 +63,7 @@ def stopping_criteria(cost, epoch):
 
    stop = False
 
-   stop = stop or epoch > 500
+   stop = stop or epoch > 200
    stop = stop or cost < 0.1
    
    the_costs = the_costs[1:] + [cost]
@@ -72,7 +72,7 @@ def stopping_criteria(cost, epoch):
 
    stop = stop or ((cost_std/cost_avg) < 0.025)
 
-   stop = stop and epoch > 100
+   stop = stop and epoch > 10
 
    return stop
 
