@@ -22,13 +22,13 @@ f.show()
 # Make a CRBM
 print "Creating RBM"
 
-rbm = CRBM(2,10)
+rbm = CRBM(2,20)
 
 rbm.lo = -2
 rbm.hi = 2
 
 # Train it
-k=1
+k=20
 for i in range(10000):
 #for i in range(0):
    err = rbm.train_epoch(dataset, 0.1, k)
@@ -55,8 +55,6 @@ for i in range(10000):
       plt.axis([-2,2,-2,2])
       plt.draw()
       f.show()
-   if i%100 == 0:
-      k += 1
 
 
 plt.show()
