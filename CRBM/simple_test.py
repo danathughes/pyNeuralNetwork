@@ -30,9 +30,9 @@ rbm.lo = -2
 rbm.hi = 2
 
 # Train it
-k=1
-
-for i in range(1000):
+k=20
+for i in range(10000):
+#for i in range(0):
    err = rbm.train_epoch(dataset, 0.1, k)
    if i%10 == 0:
       print "Epoch", i, ": Error =", err
@@ -57,8 +57,6 @@ for i in range(1000):
       plt.axis([-2,2,-2,2])
       plt.draw()
       f.show()
-   if i%100 == 0:
-      k += 1
 
 
 plt.show()
