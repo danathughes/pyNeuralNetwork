@@ -22,7 +22,8 @@ class CRBM:
       self.bias_hidden = np.zeros((num_hidden, 1))
       self.A_visible = np.ones((num_visible, 1))
       self.A_hidden = np.ones((num_hidden, 1))
-      self.sigma = 0.2
+      self.sigma_hidden = 0.5 
+      self.sigma_visible = 0.2
       self.lo = 0.0
       self.hi = 1.0
 
@@ -58,7 +59,7 @@ class CRBM:
       """
 
       v = np.dot(self.weights, hidden) + self.bias_visible
-      v += np.random.normal(0,self.sigma, (self.num_visible, 1))
+      v += np.random.normal(0,self.sigma_visible, (self.num_visible, 1))
       return self.sigmoid(v, self.A_visible)
 
 
@@ -68,7 +69,7 @@ class CRBM:
       """
 
       h = np.dot(self.weights.transpose(), visible) + self.bias_hidden
-      h += np.random.normal(0,self.sigma, (self.num_hidden, 1))
+      h += np.random.normal(0,self.sigma_hidden, (self.num_hidden, 1))
       return self.sigmoid(h, self.A_hidden)
 
 

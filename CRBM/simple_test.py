@@ -1,14 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from CRBM_linBin import *
+from CRBM import *
 
 
 # Make a random dataset
-dataset = [[np.random.normal(1,0.2), np.random.normal(1,0.1)] for i in range(50)]
-dataset = dataset + [[np.random.normal(-1,0.2), np.random.normal(-1,0.1)] for i in range(50)]
+#dataset = [[np.random.normal(1,0.2), np.random.normal(1,0.1)] for i in range(50)]
+#dataset = dataset + [[np.random.normal(-1,0.2), np.random.normal(-1,0.1)] for i in range(50)]
 
 # This one's really quite hard...
 dataset = [[np.sin(2.5*np.pi*n/180) + np.random.normal(0,0.05), np.cos(2.5*np.pi*n/180) + np.random.normal(0,0.15)] for n in range(100)]
+
+#dataset = [[-1.0 + np.random.normal(0,0.15) + 0.02*n, 0.5 + np.random.normal(0,0.2)] for n in range(100)]
 
 XY = np.array(dataset)
 
@@ -22,15 +24,15 @@ f.show()
 # Make a CRBM
 print "Creating RBM"
 
-rbm = CRBM(2,10)
+rbm = CRBM(2,20)
 
 rbm.lo = -2
 rbm.hi = 2
 
 # Train it
 k=1
-for i in range(10000):
-#for i in range(0):
+
+for i in range(1000):
    err = rbm.train_epoch(dataset, 0.1, k)
    if i%10 == 0:
       print "Epoch", i, ": Error =", err
@@ -81,8 +83,8 @@ print "A Visible"
 print "---------"
 print rbm.A_visible
 print
-#print "A Hidden"
-#print "--------"
-#print rbm.A_hidden
-#print
+print "A Hidden"
+print "--------"
+print rbm.A_hidden
+print
 

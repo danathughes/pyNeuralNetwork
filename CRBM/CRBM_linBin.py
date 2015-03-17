@@ -21,7 +21,7 @@ class CRBM:
       self.bias_visible = np.zeros((num_visible, 1))
       self.bias_hidden = np.zeros((num_hidden, 1))
       self.A_visible = np.ones((num_visible, 1))
-      self.sigma = 0.2
+      self.sigma = 1.0 
       self.lo = 0.0
       self.hi = 1.0
 
