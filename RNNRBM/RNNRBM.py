@@ -30,6 +30,10 @@ class RNNRBM:
       self.bias_hidden = np.zeros((num_hidden, 1))
       self.bias_rnn = np.zeros((num_rnn, 1))
 
+      # Activation Functions
+      self.activate_v = sigmoid
+      self.activate_h = sigmoid
+      self.activate_u = sigmoid
       self.randomize_weights_and_biases(0.01)
 
 
@@ -74,7 +78,7 @@ class RNNRBM:
       """
 
       net = self.bias_rnn + np.dot(self.Wvu, visible) + np.dot(self.Wuu, rnn_prior)
-      return tanh(net)
+      return self.activate_u(net)
 
 
    def get_probability_hidden(self, visible, hidden_bias):
@@ -83,7 +87,7 @@ class RNNRBM:
       visible unit and the dynamic hidden bias.
       """
 
-      return sigmoid(np.dot(self.Whv.transpose(), visible) + hidden_bias)
+      return self.activate_h(np.dot(self.Whv.transpose(), visible) + hidden_bias)
 
 
    def get_probability_visible(self, hidden, visible_bias):
@@ -92,7 +96,7 @@ class RNNRBM:
       hidden units and the dynamic visible bias.
       """
 
-      return sigmoid(np.dot(self.Whv, hidden) + visible_bias)
+      return self.activate_v(np.dot(self.Whv, hidden) + visible_bias)
 
 
    def sample_visible(self, hidden, visible_bias):
@@ -129,6 +133,26 @@ class RNNRBM:
          hk = self.sample_hidden(vk, hidden_bias)
 
       return vk, hk
+
+
+   def generate_visible(self, prior_rnn, v_guess=None, k=5):
+      """
+      Generate the visible vector at time t given rnn at t-1
+      """
+
+      # Calculate the dynamic hidden and visible bias
+      bh = self.get_bh(prior_rnn)
+      bv = self.get_bv(prior_rnn)
+
+      # Generate v and h using gibbs sampling
+
+      if v_guess == None:
+         v_guess = np.zeros((self.num_visible,1))
+
+      h0 = self.sample_hidden(v_guess, bh)
+      vk, hk = self.block_gibbs(h0, bv, bh, k)
+
+      return vk
 
 
    def generate_rnn_sequence(self, visible_sequence, initial_rnn):
@@ -183,6 +207,17 @@ class RNNRBM:
    def train_sequence(self, visible_sequence, initial_rnn, k=1):
       """
       Perform the training algorithm in ICML2012 on the given sequence
+
+      Returns the gradients in the following manner:
+        dC/dWhv - 	the hidden - visible RBM weight matrix
+        dC/dWuh - 	the rnn - hidden weight matrix
+        dC/dWuv - 	the rnn - visible weight matrix
+        dC/dWuu - 	the rnn - rnn weight matrix
+        dC/dWvu - 	the visible - rnn weight matrix
+        dC/dbv  - 	the visible bias
+        dC/dbh  - 	the hidden bias
+        dC/dbu  -	the rnn bias
+        dC/drnn_init - 	the initial rnn hidden unit
       """
       N = len(visible_sequence)    # How many items in the visible sequence
 
@@ -234,8 +269,6 @@ class RNNRBM:
       dC_dWhv_t = []
       dC_dWuh_t = []
       dC_dWuv_t = []
-      dC_dWuu_t = []
-      dC_dWvu_t = []
 
       for i in range(N):
          bv = bv_sequence[i]
@@ -249,13 +282,13 @@ class RNNRBM:
          dC_dbv_t.append(vk - v0)
 
          # Equation 15
-         bh_k = sigmoid(np.dot(self.Whv.transpose(), vk) - bh) 
-         bh_0 = sigmoid(np.dot(self.Whv.transpose(), v0) - bh)
+         bh_k = self.activate_h(np.dot(self.Whv.transpose(), vk) - bh) 
+         bh_0 = self.activate_h(np.dot(self.Whv.transpose(), v0) - bh)
          dC_dbh_t.append(bh_k - bh_0)
          
          # Argument of Equation 14
-         Whv_k = np.dot(vk, sigmoid(np.dot(self.Whv.transpose(), vk) - bh).transpose())
-         Whv_0 = np.dot(v0, sigmoid(np.dot(self.Whv.transpose(), v0) - bh).transpose())
+         Whv_k = np.dot(vk, self.activate_h(np.dot(self.Whv.transpose(), vk) - bh).transpose())
+         Whv_0 = np.dot(v0, self.activate_h(np.dot(self.Whv.transpose(), v0) - bh).transpose())
          dC_dWhv_t.append(Whv_k - Whv_0)
 
          # Argument of Equation 16
@@ -272,7 +305,7 @@ class RNNRBM:
       # The cost gradient 
       dC_dWhv = sum(dC_dWhv_t)     # Equation 14
       dC_dWuh = sum(dC_dWuh_t)     # Equation 16
-      dC_dWuv = sum(dC_dWUv_t)     # Equation 17
+      dC_dWuv = sum(dC_dWuv_t)     # Equation 17
       dC_dbh = sum(dC_dbh_t)       # Equation 18a
       dC_dbv = sum(dC_dbv_t)       # Equation 18b
 
@@ -280,55 +313,57 @@ class RNNRBM:
       dC_drnn_t = [None]*N
       
       # Calculate the change in cost w.r.t. rnn layer starting at T and working backward
-      dC_drrn_t[N-1] = np.zeros((self.num_rnn, 1))
+      dC_drnn_t[N-1] = np.zeros((self.num_rnn, 1))
 
       for i in range(N-2, -1, -1):
-         pass # For now, this equation doesn't really make too much sense...
+         dC_drnn_t[i] = np.dot(self.Wuu, (dC_drnn_t[i+1]*rnn_sequence[i+1]*(1-rnn_sequence[i+1])))
+         dC_drnn_t[i] = dC_drnn_t[i] + np.dot(self.Wuh.transpose(), dC_dbh_t[i+1])
+         dC_drnn_t[i] = dC_drnn_t[i] + np.dot(self.Wuv.transpose(), dC_dbv_t[i+1])
 
-      
+      dC_drnn_0 = np.dot(self.Wuu, (dC_drnn_t[0] * rnn_sequence[0] * (1 - rnn_sequence[0])))
+      dC_drnn_0 = dC_drnn_0 + np.dot(self.Wuh.transpose(), dC_dbh_t[0])
+      dC_drnn_0 = dC_drnn_0 + np.dot(self.Wuv.transpose(), dC_dbv_t[0])
+
+      dC_dbu_t = []
+      dC_dWuu_t = []
+      dC_dWvu_t = []
+
+      # Arguments for Equations 20 - 22
+      for i in range(N):
+         dC_dbu_t.append(dC_drnn_t[i] * rnn_sequence[i] * (1 - rnn_sequence[i]))
+         prior_rnn = initial_rnn if i == 0 else rnn_sequence[i]
+         dC_dWuu_t.append(np.dot(dC_dbu_t[i], prior_rnn.transpose()))
+         dC_dWvu_t.append(np.dot(dC_dbu_t[i], visible_sequence[i].transpose()))
+
+      dC_dbu = sum(dC_dbu_t)    # Equation 20
+      dC_dWuu = sum(dC_dWuu_t)      # Equation 21
+      dC_dWvu = sum(dC_dWvu_t)      # Equation 22
+
+      # All done!  Return the gradients
+      # Returns the gradients in the following manner:
+      #  dC/dWhv - 	the hidden - visible RBM weight matrix
+      #  dC/dWuh - 	the rnn - hidden weight matrix
+      #  dC/dWuv - 	the rnn - visible weight matrix
+      #  dC/dWuu - 	the rnn - rnn weight matrix
+      #  dC/dWvu - 	the visible - rnn weight matrix
+      #  dC/dbv  - 	the visible bias
+      #  dC/dbh  - 	the hidden bias
+      #  dC/dbu  -	the rnn bias
+      #  dC/drnn_init - 	the initial rnn hidden unit
+
+      return dC_dWhv, dC_dWuh, dC_dWuv, dC_dWuu, dC_dWvu, dC_dbv, dC_dbh, dC_dbu, dC_drnn_0
 
 
-## STUFF FROM RBM.py
-
-   def train_epoch(self, dataset, learning_rate = 0.001, k = 1):
+   def update_weights(self, dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu):
       """
+      Add the updates to the corresponding weights
       """
 
-      for data in dataset:
-         dW, db_vis, db_hid = self.contrastive_divergence(np.array([data]).transpose(), k)
-
-         self.weights = self.weights + learning_rate*dW
-         self.bias_hidden = self.bias_hidden + learning_rate*db_hid
-         self.bias_visible = self.bias_visible + learning_rate*db_vis
-
-
-   def contrastive_divergence(self, v0, k=1):
-      """
-      Perform CD-k for the given data point
-      """
-
-      # Calculate an h0 given the v0
-      h0 = self.sample_hidden(v0)
-
-      # We'll need to iteratively sample to get the next values.  We'll start
-      # with k=0 and iterate
-      vk = v0
-      hk = h0
-
-      # Now calculate vk and hk
-      for i in range(k):
-         vk = self.sample_visible(hk)
-         hk = self.sample_hidden(vk)
-
-      # Compute positive and negative as the outer product of these
-      positive = np.dot(v0, h0.transpose())
-      negative = np.dot(vk, hk.transpose())
-
-      # Calculate the delta-weight and delta-biases
-      delta_weights = positive - negative
-      delta_visible_bias = v0 - vk
-      delta_hidden_bias = h0 - hk
-
-      # Return these--let the learning rule handle them
-      return delta_weights, delta_visible_bias, delta_hidden_bias
-
+      self.Whv = self.Whv + dWhv
+      self.Wuh = self.Wuh + dWuh
+      self.Wuv = self.Wuv + dWuv
+      self.Wuu = self.Wuu + dWuu
+      self.Wvu = self.Wvu + dWvu
+      self.bias_visible = self.bias_visible + dbv
+      self.bias_hidden = self.bias_hidden + dbh
+      self.bias_rnn = self.bias_rnn + dbu
