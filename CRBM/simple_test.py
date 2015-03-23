@@ -4,11 +4,11 @@ from CRBM import *
 
 
 # Make a random dataset
-#dataset = [[np.random.normal(1,0.2), np.random.normal(1,0.1)] for i in range(50)]
-#dataset = dataset + [[np.random.normal(-1,0.2), np.random.normal(-1,0.1)] for i in range(50)]
+dataset = [[np.random.normal(1,0.2), np.random.normal(1,0.1)] for i in range(50)]
+dataset = dataset + [[np.random.normal(-1,0.2), np.random.normal(-1,0.1)] for i in range(50)]
 
 # This one's really quite hard...
-dataset = [[np.sin(2.5*np.pi*n/180) + np.random.normal(0,0.05), np.cos(2.5*np.pi*n/180) + np.random.normal(0,0.15)] for n in range(100)]
+#dataset = [[np.sin(2.5*np.pi*n/180) + np.random.normal(0,0.05), np.cos(2.5*np.pi*n/180) + np.random.normal(0,0.15)] for n in range(100)]
 
 #dataset = [[-1.0 + np.random.normal(0,0.15) + 0.02*n, 0.5 + np.random.normal(0,0.2)] for n in range(100)]
 
