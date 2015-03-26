@@ -51,8 +51,8 @@ for i in range(10000):
 #   dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = r.train_sequence(visible_sequence, initial_rnn)
    dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = r.gradient([visible_sequence], initial_rnn)
 
-   r.update_weights(l*dWhv, l*dWuh, l*dWuv, l*dWuu, l*dWvu, l*dbv, l*dbh, l*dbu)
-   initial_rnn = initial_rnn + l*du0
+   r.update_weights(l*dWhv, l*dWuh, l*dWuv, l*dWuu, l*dWvu, l*dbv, l*dbh, l*dbu, du0)
+
 
    v_gen = []
    v_guess = np.zeros((3,1))
