@@ -48,7 +48,8 @@ ground_truth = np.array(visible)
 
 for i in range(10000):
    print 'Iteration', i
-   dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = r.train_sequence(visible_sequence, initial_rnn)
+#   dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = r.train_sequence(visible_sequence, initial_rnn)
+   dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = r.gradient([visible_sequence], initial_rnn)
 
    r.update_weights(l*dWhv, l*dWuh, l*dWuv, l*dWuu, l*dWvu, l*dbv, l*dbh, l*dbu)
    initial_rnn = initial_rnn + l*du0
@@ -77,8 +78,9 @@ for i in range(10000):
       v_guess = np.zeros((3,1))
       for j in range(N):
          v_next = r.generate_visible(prior_rnn, v_guess, 20)
-         prior_rnn = r.get_rnn(v_next, prior_rnn)
          v_guess = np.array([visible[j]]).transpose()
+         prior_rnn = r.get_rnn(v_guess, prior_rnn)
+
          samples[j][0,i]=v_next[0,0]
          samples[j][1,i]=v_next[1,0]
          samples[j][2,i]=v_next[2,0]
@@ -130,7 +132,8 @@ for i in range(10000):
       err = err + (mean_1[i] - visible[i][1])**2
       err = err + (mean_2[i] - visible[i][2])**2
 
-   print 'RMS error = ', err
+   print 'RMS error = ', err,
+   print ' from function, RMS error = ', r.cost([visible], initial_rnn, [], 10, 20)
 
 #   if i%1000 == 0:
 #      l = l + 0.05

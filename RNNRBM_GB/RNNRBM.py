@@ -56,6 +56,62 @@ class RNNRBM:
       self.bias_rnn = np.random.uniform(low, high, self.bias_rnn.shape)
 
 
+   def cost(self, dataset, initial_rnn, output = [], M = 1, k=1):
+      """
+      Estimate the cost as the RMS error between the dataset and the reconstruction
+      Average the reconstruction over N reconstructions
+      """
+
+      total_cost = 0.0
+      num_values = 0
+
+      for sequence in dataset:
+
+         v_guess = None
+         prior_rnn = initial_rnn
+
+         for i in range(len(sequence)):
+             mean = np.zeros((len(sequence[0]), 1))
+
+             for j in range(M):
+                v_next = self.generate_visible(prior_rnn, v_guess, k)
+                prior_rnn = self.get_rnn(np.array([sequence[i]]).transpose(), prior_rnn)
+                v_guess = np.array([sequence[i]]).transpose()
+                total_cost = total_cost + np.sum((v_guess - v_next)**2)/(2)
+             
+       
+      return total_cost 
+
+ 
+   def gradient(self, dataset, initial_rnn):
+      """
+      Calculate the gradient given the dataset and initial rnn
+      """
+
+      grad_Whv = np.zeros(self.Whv.shape)
+      grad_Wuh = np.zeros(self.Wuh.shape)
+      grad_Wuv = np.zeros(self.Wuv.shape)
+      grad_Wuu = np.zeros(self.Wuu.shape)
+      grad_Wvu = np.zeros(self.Wvu.shape)
+      grad_bv = np.zeros(self.bias_visible.shape)
+      grad_bh = np.zeros(self.bias_hidden.shape)
+      grad_bu = np.zeros(self.bias_rnn.shape)
+      grad_bu0 = np.zeros(initial_rnn.shape)
+
+      for sequence in dataset:
+         dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, dbu0 = self.train_sequence(sequence, initial_rnn)
+         grad_Whv = grad_Whv + dWhv
+         grad_Wuh = grad_Wuh + dWuh
+         grad_Wuv = grad_Wuv + dWuv
+         grad_Wuu = grad_Wuu + dWuu
+         grad_Wvu = grad_Wvu + dWvu
+         grad_bv = grad_bv + dbv
+         grad_bh = grad_bh + dbh         
+         grad_bu = grad_bu + dbu
+         grad_bu0 = grad_bu0 + dbu0
+
+      return grad_Whv, grad_Wuh, grad_Wuv, grad_Wuu, grad_Wvu, grad_bv, grad_bh, grad_bu, grad_bu0
+
    def get_bv(self, rnn_prior):
       """
       Get the dynamic bias for visible units given the prior rnn layer
@@ -117,8 +173,8 @@ class RNNRBM:
 
       # Sample from normal distribution 
       net = np.dot(self.Whv, hidden) + visible_bias
-#      return np.random.normal(net, 0.005)
-      return net
+      return np.random.normal(net, 0.1)
+#      return net
 
 
    def sample_hidden(self, visible, hidden_bias):
