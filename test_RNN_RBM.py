@@ -49,9 +49,9 @@ ground_truth = np.array(visible)
 for i in range(10000):
    print 'Iteration', i
 #   dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = r.train_sequence(visible_sequence, initial_rnn)
-   dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = r.gradient([visible_sequence], initial_rnn)
+   dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = r.gradient([visible_sequence])
 
-   r.update_weights(l*dWhv, l*dWuh, l*dWuv, l*dWuu, l*dWvu, l*dbv, l*dbh, l*dbu, du0)
+   r.update_weights(l*dWhv, l*dWuh, l*dWuv, l*dWuu, l*dWvu, l*dbv, l*dbh, l*dbu, l*du0)
 
 
    v_gen = []
@@ -133,7 +133,7 @@ for i in range(10000):
       err = err + (mean_2[i] - visible[i][2])**2
 
    print 'RMS error = ', err,
-   print ' from function, RMS error = ', r.cost([visible], initial_rnn, [], 10, 20)
+   print ' from function, RMS error = ', r.cost([visible], [], 10, 20)
 
 #   if i%1000 == 0:
 #      l = l + 0.05
