@@ -30,6 +30,8 @@ class RNNRBM:
       self.bias_hidden = np.zeros((num_hidden, 1))
       self.bias_rnn = np.zeros((num_rnn, 1))
 
+      self.initial_rnn = np.zeros((num_rnn, 1))
+
       # Activation Functions
       self.activate_v = sigmoid
       self.activate_h = sigmoid
@@ -54,6 +56,151 @@ class RNNRBM:
       self.bias_visible = np.random.uniform(low, high, self.bias_visible.shape)
       self.bias_hidden = np.random.uniform(low, high, self.bias_hidden.shape)
       self.bias_rnn = np.random.uniform(low, high, self.bias_rnn.shape)
+
+      self.initial_rnn = np.random.uniform(low, high, self.initial_rnn.shape)
+
+
+   def save_model(self, filename, delimiter = '<DELIMITER>'):
+      """
+      Write the model parameters to the filename provided
+      """
+
+      try:
+         outfile = open(filename, 'w')
+      except IOError:
+         print "Could not open filename '" + filename + "'."
+         return
+
+      # Write out the number of units in each layer
+      outfile.write("%d%s%d%s%d%s" % (self.num_visible, delimiter, self.num_hidden, delimiter, self.num_rnn, delimiter))
+
+      # Write out the pickle string of each weight matrix
+      outfile.write(self.Whv.dumps() + delimiter)
+      outfile.write(self.Wuh.dumps() + delimiter)
+      outfile.write(self.Wuv.dumps() + delimiter)
+      outfile.write(self.Wuu.dumps() + delimiter)
+      outfile.write(self.Wvu.dumps() + delimiter)
+
+      outfile.write(self.bias_visible.dumps() + delimiter)
+      outfile.write(self.bias_hidden.dumps() + delimiter)
+      outfile.write(self.bias_rnn.dumps() + delimiter)
+
+      outfile.write(self.initial_rnn.dumps() + delimiter)
+
+      outfile.close()
+
+
+   def load_model(self, filename, delimiter = '<DELIMITER>'):
+      """
+      Load model parameters from the file provided
+      """
+
+      try:
+         infile = open(filename, 'r')
+      except IOError:
+         print "Could not open filename '" + filename + "'."
+         return
+
+      # Get the number of units in each layer
+      data = infile.read()
+      data = data.split(delimiter)
+
+      self.num_visible = int(data[0])
+      self.num_hidden = int(data[1])
+      self.num_rnn = int(data[2])
+
+      # Read each line and convert to weight matrices
+      self.Whv = np.loads(data[3])
+      self.Wuh = np.loads(data[4])
+      self.Wuv = np.loads(data[5])
+      self.Wuu = np.loads(data[6])
+      self.Wvu = np.loads(data[7])
+
+      self.bias_visible = np.loads(data[8])
+      self.bias_hidden = np.loads(data[9])
+      self.bias_rnn = np.loads(data[10])
+
+      self.initial_rnn = np.loads(data[11])
+
+      infile.close()
+
+
+   def cost(self, dataset, output = [], M = 1, k=1):
+      """
+      Estimate the cost as the RMS error between the dataset and the reconstruction
+      Average the reconstruction over N reconstructions
+      """
+
+      total_cost = 0.0
+      count = 0
+
+      for sequence in dataset:
+         
+         samples = []
+         for i in range(len(sequence)):
+            samples.append(np.zeros((self.num_visible, M)))
+         
+         for i in range(M):
+            prior_rnn = self.initial_rnn
+            v_guess = np.zeros((self.num_visible, 1))
+            for j in range(len(sequence)):
+               v_next= self.generate_visible(prior_rnn, v_guess, k)
+               v_guess = np.array([sequence[j]]).transpose()
+               prior_rnn = self.get_rnn(v_guess, prior_rnn)
+               samples[j][:,i] = v_next[:,0]
+
+            
+         means = [np.mean(s,1) for s in samples]
+         for i in range(len(means)):
+            err = np.sum((means[i] - np.array(sequence[i]))**2)
+            total_cost = total_cost + err
+
+         count = count + self.num_visible * len(sequence)
+ 
+
+      return total_cost / count
+
+
+   def get_weights(self):
+      """
+      Return the current weights
+      """
+
+      return self.Whv, self.Wuh, self.Wuv, self.Wuu, self.Wvu, self.bias_visible, self.bias_hidden, self.bias_rnn, self.initial_rnn 
+
+
+   def gradient(self, dataset, output=[]):
+      """
+      Calculate the gradient given the dataset and initial rnn
+      """
+
+      N = 0
+
+      grad_Whv = np.zeros(self.Whv.shape)
+      grad_Wuh = np.zeros(self.Wuh.shape)
+      grad_Wuv = np.zeros(self.Wuv.shape)
+      grad_Wuu = np.zeros(self.Wuu.shape)
+      grad_Wvu = np.zeros(self.Wvu.shape)
+      grad_bv = np.zeros(self.bias_visible.shape)
+      grad_bh = np.zeros(self.bias_hidden.shape)
+      grad_bu = np.zeros(self.bias_rnn.shape)
+      grad_u0 = np.zeros(self.initial_rnn.shape)
+
+      for sequence in dataset:
+         N = N + len(sequence)
+         dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = self.train_sequence(sequence)
+         grad_Whv = grad_Whv + dWhv
+         grad_Wuh = grad_Wuh + dWuh
+         grad_Wuv = grad_Wuv + dWuv
+         grad_Wuu = grad_Wuu + dWuu
+         grad_Wvu = grad_Wvu + dWvu
+         grad_bv = grad_bv + dbv
+         grad_bh = grad_bh + dbh     
+         grad_bu = grad_bu + dbu
+         grad_u0 = grad_u0 + du0
+
+      return grad_Whv/N, grad_Wuh/N, grad_Wuv/N, grad_Wuu/N, grad_Wvu/N, grad_bv/N, grad_bh/N, grad_bu/N, grad_u0/N
+
 
 
    def get_bv(self, rnn_prior):
@@ -117,7 +264,8 @@ class RNNRBM:
 
       # Sample from normal distribution 
       net = np.dot(self.Whv, hidden) + visible_bias
-      return np.random.normal(net, 0.000)#5)
+      return np.random.normal(net, 0.1)
+#      return net
 
 
    def sample_hidden(self, visible, hidden_bias):
@@ -165,14 +313,14 @@ class RNNRBM:
       return vk
 
 
-   def generate_rnn_sequence(self, visible_sequence, initial_rnn):
+   def generate_rnn_sequence(self, visible_sequence):
       """
       Propagate the values of a sequence of visible units to the rnn units.
 
       This corresponds to step 1 of the RNN-RBM training algorithm in ICML2012
       """
 
-      rnn_prior = initial_rnn
+      rnn_prior = self.initial_rnn
 
       # The list of RNN units from t=1...T
       rnn = []
@@ -184,12 +332,12 @@ class RNNRBM:
       return rnn
 
 
-   def generate_bh_sequence(self, initial_rnn, rnn_sequence):
+   def generate_bh_sequence(self, rnn_sequence):
       """
       Calculate a sequence of dynamic hidden biasses from the rnn sequence
       """
 
-      bh_sequence = [self.get_bh(initial_rnn)]
+      bh_sequence = [self.get_bh(self.initial_rnn)]
 
       # We're only interested in the sequence up to time step T, but could generate
       # The hidden for T+1 if desired
@@ -199,12 +347,12 @@ class RNNRBM:
       return bh_sequence
 
 
-   def generate_bv_sequence(self, initial_rnn, rnn_sequence):
+   def generate_bv_sequence(self, rnn_sequence):
       """
       Calculate a sequence of dynamic hidden biasses from the rnn sequence
       """
 
-      bv_sequence = [self.get_bv(initial_rnn)]
+      bv_sequence = [self.get_bv(self.initial_rnn)]
 
       # We're only interested in the sequence up to time step T, but could generate
       # The hidden for T+1 if desired
@@ -214,7 +362,7 @@ class RNNRBM:
       return bv_sequence
 
 
-   def train_sequence(self, visible_sequence, initial_rnn, k=1):
+   def train_sequence(self, visible_sequence, k=1):
       """
       Perform the training algorithm in ICML2012 on the given sequence
 
@@ -232,11 +380,11 @@ class RNNRBM:
       N = len(visible_sequence)    # How many items in the visible sequence
 
       # 1.  Propagate to the RNN hidden units using equation (11)
-      rnn_sequence = self.generate_rnn_sequence(visible_sequence, initial_rnn)
+      rnn_sequence = self.generate_rnn_sequence(visible_sequence)
 
       # 2a.  Calculate the RBM parameters which depend on the rnn units (bh and bv)
-      bh_sequence = self.generate_bh_sequence(initial_rnn, rnn_sequence)
-      bv_sequence = self.generate_bv_sequence(initial_rnn, rnn_sequence)
+      bh_sequence = self.generate_bh_sequence(rnn_sequence)
+      bv_sequence = self.generate_bv_sequence(rnn_sequence)
 
       # 2b.  Sample h_0^T, and perform block Gibbs sampling to get v_n^T and h_n^T
       h0_sequence = []
@@ -302,7 +450,7 @@ class RNNRBM:
          dC_dWhv_t.append(Whv_k - Whv_0)
 
          # Argument of Equation 16
-         rnn_prior = initial_rnn if i == 0 else rnn_sequence[i-1]
+         rnn_prior = self.initial_rnn if i == 0 else rnn_sequence[i-1]
          dC_dWuh_t.append(np.dot(dC_dbh_t[i], rnn_prior.transpose()))
 
          # Argument of Equation 17
@@ -341,7 +489,7 @@ class RNNRBM:
       # Arguments for Equations 20 - 22
       for i in range(N):
          dC_dbu_t.append(dC_drnn_t[i] * rnn_sequence[i] * (1 - rnn_sequence[i]))
-         prior_rnn = initial_rnn if i == 0 else rnn_sequence[i]
+         prior_rnn = self.initial_rnn if i == 0 else rnn_sequence[i]
          dC_dWuu_t.append(np.dot(dC_dbu_t[i], prior_rnn.transpose()))
          dC_dWvu_t.append(np.dot(dC_dbu_t[i], visible_sequence[i].transpose()))
 
@@ -364,16 +512,17 @@ class RNNRBM:
       return dC_dWhv, dC_dWuh, dC_dWuv, dC_dWuu, dC_dWvu, dC_dbv, dC_dbh, dC_dbu, dC_drnn_0
 
 
-   def update_weights(self, dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu):
+   def update_weights(self, dW):
       """
       Add the updates to the corresponding weights
       """
 
-      self.Whv = self.Whv + dWhv
-      self.Wuh = self.Wuh + dWuh
-      self.Wuv = self.Wuv + dWuv
-      self.Wuu = self.Wuu + dWuu
-      self.Wvu = self.Wvu + dWvu
-      self.bias_visible = self.bias_visible + dbv
-      self.bias_hidden = self.bias_hidden + dbh
-      self.bias_rnn = self.bias_rnn + dbu
+      self.Whv = self.Whv + dW[0]
+      self.Wuh = self.Wuh + dW[1]
+      self.Wuv = self.Wuv + dW[2]
+      self.Wuu = self.Wuu + dW[3]
+      self.Wvu = self.Wvu + dW[4]
+      self.bias_visible = self.bias_visible + dW[5]
+      self.bias_hidden = self.bias_hidden + dW[6]
+      self.bias_rnn = self.bias_rnn + dW[7]
+      self.initial_rnn = self.initial_rnn + dW[8]

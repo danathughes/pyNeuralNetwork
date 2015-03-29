@@ -60,6 +60,71 @@ class RNNRBM:
       self.initial_rnn = np.random.uniform(low, high, self.initial_rnn.shape)
 
 
+   def save_model(self, filename, delimiter = '<DELIMITER>'):
+      """
+      Write the model parameters to the filename provided
+      """
+
+      try:
+         outfile = open(filename, 'w')
+      except IOError:
+         print "Could not open filename '" + filename + "'."
+         return
+
+      # Write out the number of units in each layer
+      outfile.write("%d%s%d%s%d%s" % (self.num_visible, delimiter, self.num_hidden, delimiter, self.num_rnn, delimiter))
+
+      # Write out the pickle string of each weight matrix
+      outfile.write(self.Whv.dumps() + delimiter)
+      outfile.write(self.Wuh.dumps() + delimiter)
+      outfile.write(self.Wuv.dumps() + delimiter)
+      outfile.write(self.Wuu.dumps() + delimiter)
+      outfile.write(self.Wvu.dumps() + delimiter)
+
+      outfile.write(self.bias_visible.dumps() + delimiter)
+      outfile.write(self.bias_hidden.dumps() + delimiter)
+      outfile.write(self.bias_rnn.dumps() + delimiter)
+
+      outfile.write(self.initial_rnn.dumps() + delimiter)
+
+      outfile.close()
+
+
+   def load_model(self, filename, delimiter = '<DELIMITER>'):
+      """
+      Load model parameters from the file provided
+      """
+
+      try:
+         infile = open(filename, 'r')
+      except IOError:
+         print "Could not open filename '" + filename + "'."
+         return
+
+      # Get the number of units in each layer
+      data = infile.read()
+      data = data.split(delimiter)
+
+      self.num_visible = int(data[0])
+      self.num_hidden = int(data[1])
+      self.num_rnn = int(data[2])
+
+      # Read each line and convert to weight matrices
+      self.Whv = np.loads(data[3])
+      self.Wuh = np.loads(data[4])
+      self.Wuv = np.loads(data[5])
+      self.Wuu = np.loads(data[6])
+      self.Wvu = np.loads(data[7])
+
+      self.bias_visible = np.loads(data[8])
+      self.bias_hidden = np.loads(data[9])
+      self.bias_rnn = np.loads(data[10])
+
+      self.initial_rnn = np.loads(data[11])
+
+      infile.close()
+
+
    def cost(self, dataset, output = [], M = 1, k=1):
       """
       Estimate the cost as the RMS error between the dataset and the reconstruction
@@ -67,31 +132,49 @@ class RNNRBM:
       """
 
       total_cost = 0.0
-      num_values = 0
+      count = 0
 
       for sequence in dataset:
-
-         v_guess = None
-         prior_rnn = self.initial_rnn
-
-
+         
+         samples = []
          for i in range(len(sequence)):
-             mean = np.zeros((len(sequence[0]), 1))
+            samples.append(np.zeros((self.num_visible, M)))
+         
+         for i in range(M):
+            prior_rnn = self.initial_rnn
+            v_guess = np.zeros((self.num_visible, 1))
+            for j in range(len(sequence)):
+               v_next= self.generate_visible(prior_rnn, v_guess, k)
+               v_guess = np.array([sequence[j]]).transpose()
+               prior_rnn = self.get_rnn(v_guess, prior_rnn)
+               samples[j][:,i] = v_next[:,0]
 
-             for j in range(M):
-                v_next = self.generate_visible(prior_rnn, v_guess, k)
-                prior_rnn = self.get_rnn(np.array([sequence[i]]).transpose(), prior_rnn)
-                v_guess = np.array([sequence[i]]).transpose()
-                total_cost = total_cost + np.sum((v_guess - v_next)**2)/(2)
-             
-       
-      return total_cost 
+            
+         means = [np.mean(s,1) for s in samples]
+         for i in range(len(means)):
+            err = np.sum((means[i] - np.array(sequence[i]))**2)
+            total_cost = total_cost + err
 
+         count = count + self.num_visible * len(sequence)
  
+
+      return total_cost / count
+
+
+   def get_weights(self):
+      """
+      Return the current weights
+      """
+
+      return self.Whv, self.Wuh, self.Wuv, self.Wuu, self.Wvu, self.bias_visible, self.bias_hidden, self.bias_rnn, self.initial_rnn 
+
+
    def gradient(self, dataset, output=[]):
       """
       Calculate the gradient given the dataset and initial rnn
       """
+
+      N = 0
 
       grad_Whv = np.zeros(self.Whv.shape)
       grad_Wuh = np.zeros(self.Wuh.shape)
@@ -104,6 +187,7 @@ class RNNRBM:
       grad_u0 = np.zeros(self.initial_rnn.shape)
 
       for sequence in dataset:
+         N = N + len(sequence)
          dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = self.train_sequence(sequence)
          grad_Whv = grad_Whv + dWhv
          grad_Wuh = grad_Wuh + dWuh
@@ -111,11 +195,11 @@ class RNNRBM:
          grad_Wuu = grad_Wuu + dWuu
          grad_Wvu = grad_Wvu + dWvu
          grad_bv = grad_bv + dbv
-         grad_bh = grad_bh + dbh         
+         grad_bh = grad_bh + dbh     
          grad_bu = grad_bu + dbu
          grad_u0 = grad_u0 + du0
 
-      return grad_Whv, grad_Wuh, grad_Wuv, grad_Wuu, grad_Wvu, grad_bv, grad_bh, grad_bu, grad_u0
+      return grad_Whv/N, grad_Wuh/N, grad_Wuv/N, grad_Wuu/N, grad_Wvu/N, grad_bv/N, grad_bh/N, grad_bu/N, grad_u0/N
 
 
 
@@ -428,17 +512,17 @@ class RNNRBM:
       return dC_dWhv, dC_dWuh, dC_dWuv, dC_dWuu, dC_dWvu, dC_dbv, dC_dbh, dC_dbu, dC_drnn_0
 
 
-   def update_weights(self, dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0):
+   def update_weights(self, dW):
       """
       Add the updates to the corresponding weights
       """
 
-      self.Whv = self.Whv + dWhv
-      self.Wuh = self.Wuh + dWuh
-      self.Wuv = self.Wuv + dWuv
-      self.Wuu = self.Wuu + dWuu
-      self.Wvu = self.Wvu + dWvu
-      self.bias_visible = self.bias_visible + dbv
-      self.bias_hidden = self.bias_hidden + dbh
-      self.bias_rnn = self.bias_rnn + dbu
-      self.initial_rnn = self.initial_rnn + du0
+      self.Whv = self.Whv + dW[0]
+      self.Wuh = self.Wuh + dW[1]
+      self.Wuv = self.Wuv + dW[2]
+      self.Wuu = self.Wuu + dW[3]
+      self.Wvu = self.Wvu + dW[4]
+      self.bias_visible = self.bias_visible + dW[5]
+      self.bias_hidden = self.bias_hidden + dW[6]
+      self.bias_rnn = self.bias_rnn + dW[7]
+      self.initial_rnn = self.initial_rnn + dW[8]

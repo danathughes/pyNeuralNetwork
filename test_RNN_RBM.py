@@ -2,6 +2,7 @@ from RNNRBM_GB.RNNRBM import *
 import numpy as np
 
 import matplotlib.pyplot as plt
+from Training.teacher import *
 
 # Simple RNN-RBM with 3 visible, 4 hidden and 2 rnn units
 r = RNNRBM(3,10,10)
@@ -32,59 +33,61 @@ for i in range(N):
 
 print
 
-initial_rnn = np.zeros((10,1))
+gradient_descent_rate = 0.2
 
-print "Initial RNN hidden layer: "
-print initial_rnn
-print
-
+teacher = Teacher(r)
+teacher.add_weight_update(gradient_descent_rate, gradient_descent)
 
 # Does the train_sequence function break?
-l = -0.01
-
+l = -0.2
 ground_truth = np.array(visible)
 
 
 
-for i in range(10000):
-   print 'Iteration', i
-#   dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = r.train_sequence(visible_sequence, initial_rnn)
-   dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = r.gradient([visible_sequence])
+for i in range(1,10000):
 
-   r.update_weights(l*dWhv, l*dWuh, l*dWuv, l*dWuu, l*dWvu, l*dbv, l*dbh, l*dbu, l*du0)
+   if i%500 == 0:
+      gradient_descent_rate = gradient_descent_rate / 2
+      teacher.weight_updates = []
+      teacher.update_rates = []
+      teacher.add_weight_update(gradient_descent_rate, gradient_descent)
+
+   print 'Iteration', i,
+
+   teacher.train([visible_sequence], [])
+
+#   dWhv, dWuh, dWuv, dWuu, dWvu, dbv, dbh, dbu, du0 = r.gradient([visible_sequence])
+#   r.update_weights(l*dWhv, l*dWuh, l*dWuv, l*dWuu, l*dWvu, l*dbv, l*dbh, l*dbu, l*du0)
 
 
    v_gen = []
    v_guess = np.zeros((3,1))
-   prior_rnn = initial_rnn
+   prior_rnn = r.initial_rnn
    for i in range(N):
       v_next = r.generate_visible(prior_rnn, v_guess, 20)
       prior_rnn = r.get_rnn(v_next, prior_rnn)
       v_gen.append(v_next)
       v_guess = v_next
 
-#   for j in range(N):
-#      print j, '-', v_gen[j].transpose().tolist()
-#      print j, '-',
-#      for k in range(3):
-#         print "%.2f\t" % v_gen[j][k,0],
-#      print
 
    M = 10 # Number of samples to figure out statistics
    # Get some samples to figure out the mean and std-dev of reconstructed signals
    samples = [np.zeros((3,M)), np.zeros((3,M)), np.zeros((3,M)), np.zeros((3,M)), np.zeros((3,M))]
+   cost = 0.0
    for i in range(M):
-      prior_rnn = initial_rnn
+      prior_rnn = r.initial_rnn
       v_guess = np.zeros((3,1))
       for j in range(N):
          v_next = r.generate_visible(prior_rnn, v_guess, 20)
          v_guess = np.array([visible[j]]).transpose()
          prior_rnn = r.get_rnn(v_guess, prior_rnn)
+         cost = cost + np.sum((v_next - np.array(visible[j]))**2)
 
          samples[j][0,i]=v_next[0,0]
          samples[j][1,i]=v_next[1,0]
          samples[j][2,i]=v_next[2,0]
        
+
    means = [np.mean(samples[0],1), np.mean(samples[1],1), np.mean(samples[2],1), np.mean(samples[3],1), np.mean(samples[4],1)]
    stds = [np.std(samples[0],1), np.std(samples[1],1), np.std(samples[2],1), np.std(samples[3],1), np.std(samples[4],1)]
 
@@ -122,18 +125,12 @@ for i in range(10000):
    plt.plot([1,2,3,4,5], lo_1, '--g')
    plt.plot([1,2,3,4,5], lo_2, '--b')
 
+   plt.axis([1,5,-2,2.5])
+
    plt.draw()
    f.show()
 
-
-   err = 0.0
-   for i in range(N):
-      err = err + (mean_0[i] - visible[i][0])**2
-      err = err + (mean_1[i] - visible[i][1])**2
-      err = err + (mean_2[i] - visible[i][2])**2
-
-   print 'RMS error = ', err,
-   print ' from function, RMS error = ', r.cost([visible], [], 10, 20)
+   print 'RMS error = ', r.cost([visible], [], 10, 20)
 
 #   if i%1000 == 0:
 #      l = l + 0.05
