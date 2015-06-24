@@ -66,17 +66,17 @@ class ConsoleLogger:
       np.set_printoptions(suppress=True)
 
       correct_training_predictions = 0
-      for i in range(len(self.training_data)):
-         label = self.model.classify(self.training_data[i])
-         if label == self.training_labels[i]:
-            correct_training_predictions += 1
+#      for i in range(len(self.training_data)):
+#         label = self.model.classify(self.training_data[i])
+#         if label == self.training_labels[i]:
+#            correct_training_predictions += 1
 
 
       correct_test_predictions = 0
-      for i in range(len(self.test_data)):
-         label = self.model.classify(self.test_data[i])
-         if label == self.test_labels[i]:
-            correct_test_predictions += 1
+#      for i in range(len(self.test_data)):
+#         label = self.model.classify(self.test_data[i])
+#         if label == self.test_labels[i]:
+#            correct_test_predictions += 1
 
       if epoch_number % 1 == 0:
          print "Epoch #" + str(epoch_number) + ":"

@@ -122,7 +122,7 @@ class RecurrentNeuralNetwork:
             total_steps += 1
             cost += 0.5 * (output_sequences[i][j] - predictions[j])**2
 
-      return cost / total_steps
+      return np.sum(cost) / total_steps
 
 #      predictions = [self.predict(data) for data in dataset]
 #      targets = [np.array([output]).transpose() for output in outputs]
@@ -141,6 +141,9 @@ class RecurrentNeuralNetwork:
 
       dbh = np.zeros(self.bh.shape)
       dbo = np.zeros(self.bo.shape)
+
+      # How many unrollings are there?
+      frame_count = 0
 
 #      dW = [np.zeros((0,0))]
 #      dB = [np.zeros((0,0))]
@@ -165,8 +168,27 @@ class RecurrentNeuralNetwork:
 
 #         deltas = [self.cost_gradient(activations[-1], target) * self.gradient_functions[-1](activations[-1])]
 
+         old_hidden = np.zeros(self.bh.shape)
+
          for t in range(len(activations)):
+            act = activations[t]
+            out = np.array(output[t])        # Why do I need to cast this?
             # Delta rule goes here...
+            delta_out = self.cost_gradient(act[2], out)
+            delta_out *= self.gradient_functions[2](act[2])
+
+            delta_hidden = np.dot(self.Who.transpose(), delta_out) 
+            delta_hidden *= self.gradient_functions[1](act[1])
+
+            dWih += np.dot(delta_hidden, act[0].transpose())
+            dWhh += np.dot(delta_hidden, old_hidden.transpose())
+            dWho += np.dot(delta_out, act[1].transpose())
+
+            dbh += delta_hidden
+            dbo += delta_out
+
+            frame_count += 1
+            old_hidden = act[1]
 
          # Now do hidden layers
 #         for i in range(self.numLayers-1, 1, -1):
@@ -184,9 +206,17 @@ class RecurrentNeuralNetwork:
 #         dW[i] /= len(dataset)
 #         dB[i] /= len(dataset)
 
+      dWih /= frame_count
+      dWhh /= frame_count
+      dWho /= frame_count
+      dbh /= frame_count
+      dbo /= frame_count
+
       # All done!  Stack the dW and dB lists and return them
 #      return dW + dB
-         
+      
+      return [dWih, dWhh, dWho, dbh, dbo]
+
 
    def get_weights(self):
       """
@@ -255,5 +285,6 @@ class RecurrentNeuralNetwork:
       activations = self.activate(sequence, initial_hidden)
 
       return [a[2] for a in activations]
+
 
 
