@@ -21,8 +21,34 @@ import random
 from Functions.functions import *
 
 
+class Connection:
+   """
+   Weighted connection between two layers
+   """
+
+   def __init__(self):
+      pass
+
+class Layer:
+   """
+   Layer
+   """
+   
+   def __init__(self):
+      pass
+
+
+class OutputLayer(Layer):
+   """
+   """
+
+   def __init__(self):
+      pass
+
+
 class LogisticRegressionModel:
    """
+   Simple Logistic Regression Model
    """
 
    def __init__(self, numVariables, numOutputs, activation_function = SOFTMAX, cost_function = CROSS_ENTROPY):

@@ -156,18 +156,6 @@ class RecurrentNeuralNetwork:
       for sequence, output in zip(sequence_set, output_sequences):
          activations = self.activate(sequence)
 
-#      for data, output in zip(dataset, outputs):
-         # Convert the output to a column vector
-#         target = np.array([output]).transpose()
-
-         # Do a forward pass - get the activation of each layer
-#         activations = self.activate(data)
-
-         # Perform backpropagation
-         # The first delta is the gradient of the cost function (dE/dz) times the gradient of the activation (dz/dy)
-
-#         deltas = [self.cost_gradient(activations[-1], target) * self.gradient_functions[-1](activations[-1])]
-
          old_hidden = np.zeros(self.bh.shape)
 
          for t in range(len(activations)):
@@ -259,9 +247,17 @@ class RecurrentNeuralNetwork:
       activations = []
 
       # Loop through the data.  The activations will consist of [[input_0, hidden_0, output_0], [input_1, hidden_1, output_1]...]
-      for data in sequence:      
+      for data in sequence: 
+         print "Input:\t\t\t", data.transpose()
          hidden_activation = np.dot(self.Wih, data) + np.dot(self.Whh, hidden_activation) + self.bh
+         print "Net Hidden Input:\t", hidden_activation.transpose()
+         hidden_activation = self.activation_functions[1](hidden_activation)
+         print "Hidden Activation:\t", hidden_activation.transpose()
          output_activation = np.dot(self.Who, hidden_activation) + self.bo
+         print "Net Output Input:\t", output_activation.transpose()
+         output_activation = self.activation_functions[2](output_activation)
+         print "Output Activation:\t", output_activation.transpose()
+         print
 
          activations.append([data, hidden_activation, output_activation])
       # For this version, we'll assume sigmoid activation units
