@@ -22,26 +22,20 @@ if __name__ == '__main__':
    iris_data, iris_classes = load_iris_data()
 
    # Normalize the input data
-   iris_data = featureScaling.mean_stdev(iris_data)
+#   iris_data = featureScaling.mean_stdev(iris_data)
 
    # Split into training and test data
-   training_set_X = []
-   training_set_Y = []
-   test_set_X = []
-   test_set_Y = []
+   idx = range(iris_data.shape[0])
+   random.shuffle(idx)
+   numVariables = 4
 
-   for i in range(len(iris_data)):
-      if random.random() < training_percentage:
-         training_set_X.append(iris_data[i])
-         training_set_Y.append(iris_classes[i])
-      else:
-         test_set_X.append(iris_data[i])
-         test_set_Y.append(iris_classes[i])
-
-   # How many variables?
-   numVariables = len(training_set_X[0])
+   training_set_X = iris_data[idx[:120],:]
+   training_set_Y = iris_classes[idx[:120],:]
+   test_set_X = iris_data[idx[120:],:]
+   test_set_Y = iris_classes[idx[120:],:] 
 
    # Create the model
+   print "Creating model..."
    LR = LogisticRegressionModel(numVariables, 3, SIGMOID, CROSS_ENTROPY)
    LR.randomize_weights()
 
@@ -58,6 +52,7 @@ if __name__ == '__main__':
    teacher.add_weight_update(0.9, gradient_descent)
    teacher.add_weight_update(0., momentum)
    teacher.add_weight_update(0.000, weight_decay)
+   print "Training..."
    teacher.train_batch(training_set_X, training_set_Y, stopping_criteria)
 
    # Separate the data into 10 folds
@@ -69,7 +64,6 @@ if __name__ == '__main__':
 #      folds_Y[i%10].append(training_set_Y[i])
 
 #   cost, accuracy = k_fold_cross_validation(LR, teacher, folds_X, folds_Y, 0.001, 20)
-
 
    logger.log_results()
 

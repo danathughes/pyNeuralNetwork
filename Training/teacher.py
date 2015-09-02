@@ -76,7 +76,7 @@ def stopping_criteria(cost, epoch):
 
 #   return stop
 
-   return epoch > 1000 or cost < 0.0001
+   return epoch > 1000 #or cost < 0.0001
 
 
 class Teacher:

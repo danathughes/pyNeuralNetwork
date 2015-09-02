@@ -66,17 +66,19 @@ class ConsoleLogger:
       np.set_printoptions(suppress=True)
 
       correct_training_predictions = 0
-#      for i in range(len(self.training_data)):
-#         label = self.model.classify(self.training_data[i])
-#         if label == self.training_labels[i]:
-#            correct_training_predictions += 1
+      predicted_labels = self.model.classify(self.training_data)
+      for i in range(len(self.training_data)):
+         lbl = predicted_labels[i]
+         if self.training_labels[i,lbl] == 1:
+            correct_training_predictions += 1
 
 
       correct_test_predictions = 0
-#      for i in range(len(self.test_data)):
-#         label = self.model.classify(self.test_data[i])
-#         if label == self.test_labels[i]:
-#            correct_test_predictions += 1
+      predicted_labels = self.model.classify(self.test_data)
+      for i in range(len(self.test_data)):
+         lbl = predicted_labels[i]
+         if self.test_labels[i,lbl] == 1:
+            correct_test_predictions += 1
 
       if epoch_number % 1 == 0:
          print "Epoch #" + str(epoch_number) + ":"
@@ -95,16 +97,18 @@ class ConsoleLogger:
       np.set_printoptions(suppress=True)
 
       correct_training_predictions = 0
+      predicted_labels = self.model.classify(self.training_data)
       for i in range(len(self.training_data)):
-         label = self.model.classify(self.training_data[i])
-         if label == self.training_labels[i]:
+         lbl = predicted_labels[i]
+         if self.training_labels[i,lbl] == 1:
             correct_training_predictions += 1
 
 
       correct_test_predictions = 0
+      predicted_labels = self.model.classify(self.test_data)
       for i in range(len(self.test_data)):
-         label = self.model.classify(self.test_data[i])
-         if label == self.test_labels[i]:
+         lbl = predicted_labels[i]
+         if self.test_labels[i,lbl] == 1:
             correct_test_predictions += 1
 
       print "Final Results:"

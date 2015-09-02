@@ -119,20 +119,17 @@ def cost_squared_error(predictions, targets):
    Calculate the cost function of the model for the given dataset
    """
 
-   cost = 0.0
-   
-   for prediction, target in zip(predictions, targets):
-      cost += 0.5*(target-prediction).transpose().dot(target-prediction)[0,0]
+   cost = 0.5*np.sum((targets-predictions)**2)
 
    return cost
 
 
-def gradient_squared_error(prediction, target):
+def gradient_squared_error(predictions, targets):
    """
    Gradient of the squared error cost function w.r.t. activation
    """
 
-   return target - prediction
+   return targets - predictions
 
 
 def cost_cross_entropy(predictions, targets):
@@ -140,19 +137,16 @@ def cost_cross_entropy(predictions, targets):
    Calculate the cross-entropy cost
    """
    
-   cost = 0.0
+   cost = -np.sum(targets*np.log(predictions + 0.0001) + (1.0 - targets)*np.log(1.0 - predictions + 0.0001))
 
-   for prediction, target in zip(predictions, targets):
-      cost -= np.sum(target*np.log(prediction) + (1.0-target)*np.log(1.0-prediction))
-   
    return cost
 
 
-def gradient_cross_entropy(prediction, target):
+def gradient_cross_entropy(predictions, targets):
    """
    """
 
-   return (target - prediction) / (prediction * (1.0 - prediction))
+   return (targets - predictions) / (0.0001 + predictions * (1.0 - predictions))
 
 
 # Group activations and gradients into tuples for simplicity

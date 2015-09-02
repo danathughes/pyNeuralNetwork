@@ -79,40 +79,38 @@ class LogisticRegressionModel:
       self.biases = np.random.uniform(-1.0/self.N, 1.0/self.N, self.biases.shape)
 
 
-   def cost(self, dataset, outputs):
+   def cost(self, dataset, targets):
       """
       Determine the cost (error) of the parameters given the data and labels
       """
 
-      predictions = [self.predict( data ) for data in dataset]
-      targets = [np.array([output]).transpose() for output in outputs]
+      predictions = self.predict(dataset)
+      
+      return self.cost_function(predictions, targets) / dataset.shape[0]
 
-      return self.cost_function(predictions, targets)/len(dataset)
 
-
-   def gradient(self, dataset, outputs):
+   def gradient(self, dataset, targets):
       """
       Determine the gradient of the parameters given the data and labels
 
       Gradient for the sigmoid output is dy/dx = x*y*(1-y)
       """
 
-      dW = np.zeros((self.M, self.N)) 
-      dB = np.zeros((self.M, 1))
+      # Forward pass
+      predictions = self.predict(dataset)
 
-      for data, output in zip(dataset, outputs):
-         prediction = self.predict(data)
-         target = np.array([output]).transpose()
-
-         cost_gradient = self.cost_gradient(prediction, target)
-         activation_gradient = self.activation_gradient(prediction)
-
-         gradient = cost_gradient * activation_gradient
+      # Backward pass
+      cost_gradients = self.cost_gradient(predictions, targets)
+      activation_gradients = self.activation_gradient(predictions)
       
-         dB -= gradient
-         dW -= np.dot(gradient, np.array([data]))
+      # Final gradient
+      gradients = cost_gradients * activation_gradients
 
-      return [dW/len(dataset), dB/len(dataset)]
+      # Weight updates
+      dB = np.array([-np.sum(gradients, 0)]).transpose()
+      dW = -np.tensordot(gradients.transpose(), dataset, axes=1)
+
+      return [dW/dataset.shape[0], dB/dataset.shape[0]]
 
 
    def get_weights(self):
@@ -139,17 +137,13 @@ class LogisticRegressionModel:
       """
 
       net = self.biases + np.dot(self.weights, data.transpose())
-      return self.activation_function(net)
+      return self.activation_function(net.transpose())
 
 
    def classify(self, data):
       """
-      Classify the data by assigning 1 to the highest prediction probability
+      Classify the data by returning the index of the highest probability
       """
       
       predictions = self.predict(data)
-      P_max = np.max(predictions)
-
-      classes = [1 if p == P_max else 0 for p in predictions]
-      return classes
-      
+      return np.argmax(predictions, 1)      

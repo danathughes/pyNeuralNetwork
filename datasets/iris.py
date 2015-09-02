@@ -2,6 +2,8 @@
 ##
 ## Helper file to load iris data
 
+import numpy as np
+
 irisDataFileName = '/home/dana/Research/DeepLearning/datasets/data/iris.data'
 
 class_names = {'Iris-setosa':     [1,0,0], 
@@ -25,4 +27,4 @@ def load_iris_data(filename = irisDataFileName):
 
    iris_data_file.close()
 
-   return iris_data, iris_classes
+   return np.array(iris_data), np.array(iris_classes)
