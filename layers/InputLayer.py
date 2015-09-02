@@ -2,9 +2,10 @@
 ##
 ##
 
+from AbstractLayer import AbstractLayer
 import numpy as np
 
-class InputLayer:
+class InputLayer(AbstractLayer):
    """
    An input layer
    """
@@ -13,6 +14,9 @@ class InputLayer:
       """
       Create an input layer, with batchSize rows and inputSize columns
       """
+
+      # Properly inherit the AbstractLayer
+      AbstractLayer.__init__(self)
 
       # Initialize the input (user provided) and output (after forward pass)
       # Note that output is simply equivalent to the input
@@ -52,63 +56,3 @@ class InputLayer:
       # to backprop to
       pass
 
-
-   def reset(self):
-      """
-      Set the gradient to zero
-      """
-
-      # Input layers have no parameters
-      pass
-
-
-   def updateParameters(self, params):
-      """
-      Update the parameters
-      """
-
-      # Input layers have no parameters
-      pass
-
-
-   def getParameters(self):
-      """
-      Return the gradient of this layer
-      """
-
-      # Input layers have no parameters
-      return None
-
-
-   def getInput(self):
-      """
-      Provide the input to this unit
-      """
-
-      return self.input
-
-
-   def getOutput(self):
-      """
-      Provide the output from this unit
-      """
-
-      return self.output
-
-
-   def getParameterGradient(self):
-      """
-      This is input, there is not gradient
-      """
-
-      # Input layers have no parameters
-      return None
-
-
-   def getDelta(self):
-      """
-      Return the delta after a backward pass
-      """
-
-      # Input layers have no parameters
-      return None

@@ -3,9 +3,10 @@
 ## A layer which implements the sigmoid activation function
 
 
+from AbstractLayer import AbstractLayer
 import numpy as np
 
-class SigmoidLayer:
+class SigmoidLayer(AbstractLayer):
    """
    A layer which implements sigmoid activation
    """
@@ -15,15 +16,14 @@ class SigmoidLayer:
       A sigmoid layer can be connected to several inputs
       """
 
+      # Properly inherit the AbstractLayer
+      AbstractLayer.__init__(self)
+
       self.shape = (batchSize, inputSize)
 
       self.input = np.zeros(self.shape)
       self.output = np.zeros(self.shape)
       self.delta = np.zeros(self.shape)
-
-      # What are the connections to this layer
-      self.input_connections = []
-      self.output_connections = []
 
 
    def forward(self):
@@ -31,10 +31,8 @@ class SigmoidLayer:
       Perform a forward step - activate the net input using logistic function
       """
 
-      # Calculate the net input
-      self.input *= 0.0
-      for in_connection in self.input_connections:
-         self.input += in_connection.getOutput()
+      # Calculate the net input to this layer
+      self.input = sum([in_connection.getOutput() for in_connection in self.input_connections])
 
       # Perform the activation (logistic function)
       self.output = 1.0 / (1.0 + np.exp(-self.input))
@@ -46,64 +44,3 @@ class SigmoidLayer:
       """
             
       self.delta = self.output * (1.0 - self.output) * sum([out.getDelta() for out in self.output_connections])
-
-
-   def reset(self):
-      """
-      Set the parameter gradient to zero
-      """
-
-      # This module does not have any parameters
-      pass
-
-
-   def updateParameters(self, params):
-      """
-      Update the parameters
-      """
-
-      # This module does not have any parameters
-      pass
-
-
-   def getParameters(self):
-      """
-      Return the parameters of this layer
-      """
-
-      # This module does not have any parameters
-      return None
-
-
-   def getInput(self):
-      """
-      Provide the input to this unit
-      """
-
-      return self.input
-
-
-   def getOutput(self):
-      """
-      Provide the output from this unit
-      """
-
-      return self.output
-
-
-   def getParameterGradient(self):
-      """
-      Return the gradient after backpropagation
-      """
-
-      # This module does not have any parameters
-      return None
-
-
-   def getDelta(self):
-      """
-      Return the delta after backpropagation
-      """
-
-      return self.delta
-
