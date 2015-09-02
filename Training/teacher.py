@@ -59,23 +59,24 @@ def stopping_criteria(cost, epoch):
    Decide whether or not to stop training
    """
 
-   global the_costs
+#   global the_costs
 
-   stop = False
+#   stop = False
 
-   stop = stop or epoch > 200
-   stop = stop or cost < 0.1
+#   stop = stop or epoch > 200
+#   stop = stop or cost < 0.1
    
-   the_costs = the_costs[1:] + [cost]
-   cost_avg = np.mean(np.array(the_costs))
-   cost_std = np.std(np.array(the_costs))
+#   the_costs = the_costs[1:] + [cost]
+#   cost_avg = np.mean(np.array(the_costs))
+#   cost_std = np.std(np.array(the_costs))
 
-   stop = stop or ((cost_std/cost_avg) < 0.025)
+#   stop = stop or ((cost_std/cost_avg) < 0.025)
 
-   stop = stop and epoch > 10
+#   stop = stop and epoch > 10
 
-   return stop
+#   return stop
 
+   return epoch > 1000 or cost < 0.0001
 
 
 class Teacher:

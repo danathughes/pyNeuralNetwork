@@ -48,7 +48,7 @@ if __name__ == '__main__':
    graphLogger = GraphLogger(LR, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
    consoleLogger = ConsoleLogger(LR, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
    logger = CompositeLogger()
-   logger.add_logger(graphLogger)
+#   logger.add_logger(graphLogger)
    logger.add_logger(consoleLogger)
 
    logger.log_setup()
@@ -58,19 +58,20 @@ if __name__ == '__main__':
    teacher.add_weight_update(0.9, gradient_descent)
    teacher.add_weight_update(0., momentum)
    teacher.add_weight_update(0.000, weight_decay)
-#   teacher.train_batch(training_set_X, training_set_Y, 0.0001, 200)
+   teacher.train_batch(training_set_X, training_set_Y, stopping_criteria)
 
    # Separate the data into 10 folds
-   folds_X = [[]]*10
-   folds_Y = [[]]*10
+#   folds_X = [[]]*10
+#   folds_Y = [[]]*10
 
-   for i in range(len(training_set_X)):
-      folds_X[i%10].append(training_set_X[i])
-      folds_Y[i%10].append(training_set_Y[i])
+#   for i in range(len(training_set_X)):
+#      folds_X[i%10].append(training_set_X[i])
+#      folds_Y[i%10].append(training_set_Y[i])
 
-   cost, accuracy = k_fold_cross_validation(LR, teacher, folds_X, folds_Y, 0.001, 20)
+#   cost, accuracy = k_fold_cross_validation(LR, teacher, folds_X, folds_Y, 0.001, 20)
+
 
    logger.log_results()
 
-   print "Cost = ", cost
-   print "Acc  = ", accuracy
+#   print "Cost = ", cost
+#   print "Acc  = ", accuracy
