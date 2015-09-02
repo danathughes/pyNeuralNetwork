@@ -19,7 +19,7 @@ class SigmoidLayer:
 
       self.input = np.zeros(self.shape)
       self.output = np.zeros(self.shape)
-      self.gradient = np.zeros(self.shape)
+      self.delta = np.zeros(self.shape)
 
       # What are the connections to this layer
       self.input_connections = []
@@ -44,16 +44,17 @@ class SigmoidLayer:
       """
       Perform a backprop step - gradient is the derivative of the sigmoid functon
       """
-
-      self.gradient = self.output * (1.0 - self.output)
+            
+      self.delta = self.output * (1.0 - self.output) * sum([out.getDelta() for out in self.output_connections])
 
 
    def reset(self):
       """
-      Set the gradient to zero
+      Set the parameter gradient to zero
       """
 
-      self.gradient = np.zeros(self.shape)
+      # This module does not have any parameters
+      pass
 
 
    def updateParameters(self, params):
@@ -61,15 +62,17 @@ class SigmoidLayer:
       Update the parameters
       """
 
+      # This module does not have any parameters
       pass
 
 
    def getParameters(self):
       """
-      Return the gradient of this layer
+      Return the parameters of this layer
       """
 
-      return np.zeros((0,0))
+      # This module does not have any parameters
+      return None
 
 
    def getInput(self):
@@ -88,10 +91,19 @@ class SigmoidLayer:
       return self.output
 
 
-   def getGradient(self):
+   def getParameterGradient(self):
       """
       Return the gradient after backpropagation
       """
 
-      return self.gradient
+      # This module does not have any parameters
+      return None
+
+
+   def getDelta(self):
+      """
+      Return the delta after backpropagation
+      """
+
+      return self.delta
 

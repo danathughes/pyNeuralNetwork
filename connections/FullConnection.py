@@ -13,7 +13,7 @@ class FullConnection:
       """
       """
 
-      self.weights = np.array((inputSize, outputSize))
+      self.weights = np.zeros((inputSize, outputSize))
       self.dimensions = (inputSize, outputSize)
 
       self.inputs = np.zeros((0,inputSize))
@@ -61,7 +61,7 @@ class FullConnection:
       Perform a backprop step
       """
 
-      pass
+      self.delta = np.dot(self.output_connection.getDelta(), self.weights.transpose())
 
 
    def reset(self):
@@ -88,13 +88,6 @@ class FullConnection:
       return self.weights
 
 
-   def setInput(self, batch):
-      """
-      """
-
-      self.inputs = batch
-
-
    def getInput(self):
       """
       Provide the input to this unit
@@ -111,10 +104,26 @@ class FullConnection:
       return self.outputs
 
 
-   def getGradient(self):
+   def updateParameterGradient(self):
+      """
+      Update the parameter gradient with the appropriate weight change based on forward and backward pass
+      """
+
+      self.gradient += np.tensordot(self.inputs.transpose(), self.output_connection.getDelta(), 1)
+
+
+   def getParameterGradient(self):
       """
       Return the gradient after backpropagation
       """
 
-      pass
+      return self.gradient
 
+
+   def getDelta(self):
+      """
+      Return the delta after a backward pass
+      """
+
+      return self.delta
+       

@@ -19,12 +19,8 @@ class InputLayer:
       self.inputs = np.zeros((batchSize, inputSize))
       self.output = self.inputs
 
-      # There is no gradient to keep track of
-      self.gradient = np.zeros((0,0))
-
       self.shape = (batchSize, inputSize)
 
-      self.input_connections = []
       self.output_connections = []
 
 
@@ -52,6 +48,8 @@ class InputLayer:
       Perform a backprop step
       """
 
+      # Input layers have no need to backprop error -- there is nothing 
+      # to backprop to
       pass
 
 
@@ -60,6 +58,7 @@ class InputLayer:
       Set the gradient to zero
       """
 
+      # Input layers have no parameters
       pass
 
 
@@ -68,6 +67,7 @@ class InputLayer:
       Update the parameters
       """
 
+      # Input layers have no parameters
       pass
 
 
@@ -76,7 +76,8 @@ class InputLayer:
       Return the gradient of this layer
       """
 
-      return self.gradient
+      # Input layers have no parameters
+      return None
 
 
    def getInput(self):
@@ -95,10 +96,19 @@ class InputLayer:
       return self.output
 
 
-   def getGradient(self):
+   def getParameterGradient(self):
       """
       This is input, there is not gradient
       """
 
-      return np.zeros(self.shape)
+      # Input layers have no parameters
+      return None
 
+
+   def getDelta(self):
+      """
+      Return the delta after a backward pass
+      """
+
+      # Input layers have no parameters
+      return None

@@ -74,10 +74,17 @@ class InputLayer:
       pass
 
 
-   def getGradient(self):
+   def getParameterGradient(self):
       """
       Return the gradient after backpropagation
       """
 
       pass
+
+
+   def getDelta(self):
+      """
+      Return the delta after the backward pass
+      """
+
 
