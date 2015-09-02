@@ -2,7 +2,7 @@
 ##
 ## Helper file to load iris data
 
-irisDataFileName = '/home/dana/Desktop/Research/deepLearning/datasets/data/iris.data'
+irisDataFileName = '/home/dana/Research/DeepLearning/datasets/data/iris.data'
 
 class_names = {'Iris-setosa':     [1,0,0], 
                'Iris-versicolor': [0,1,0],

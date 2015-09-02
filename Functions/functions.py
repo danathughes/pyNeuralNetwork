@@ -4,6 +4,9 @@
 ##
 ## Revisions:
 ##   1.0   Initial version.
+##   1.1   Designed to work with 2D arrays of data.  Each row of the data array 
+##         is an individual sample
+
 
 import numpy as np
 
@@ -26,11 +29,13 @@ def gradient_sigmoid(a):
 
 def softmax(z):
    """
-   Softmax activation layer
+   Softmax activation layer.  
    """
 
    activations = np.exp(z)
-   return activations / np.sum(activations)   
+   # Add row-wise the activations to normalize
+   denoms = np.array([np.sum(activations,1)]).transpose()
+   return activations / denoms
 
 
 def gradient_softmax(a):

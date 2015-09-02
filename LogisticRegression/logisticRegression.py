@@ -15,6 +15,9 @@
 ##   1.04  Changed from one large weight matrix to weights and biases
 ##         Vectorized weight randomization function
 ##   1.05  Vectorized everything.  Matches neural network code.
+##   1.1   Major change - require input / output pairs to be 2D numpy 
+##         arrays, so batch learning is performed instead of individual
+##         training cases, (but still allow individual training cases)
 
 import numpy as np
 import random
@@ -135,7 +138,7 @@ class LogisticRegressionModel:
       Predict the class probabilites given the data
       """
 
-      net = self.biases + np.dot(self.weights,np.array([data]).transpose())
+      net = self.biases + np.dot(self.weights, data.transpose())
       return self.activation_function(net)
 
 
