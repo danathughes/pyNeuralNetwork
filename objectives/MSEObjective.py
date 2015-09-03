@@ -1,11 +1,14 @@
 ## MSEObjective.py
 ##
-##
+## An objective layer which calculates the mean squared error between 
+## predicted values and a target value.
 
 import numpy as np
 
 class MSEObjective:
    """
+   Objective layer which calculates the mean squared error between 
+   predictions and targets
    """
 
    def __init__(self):
