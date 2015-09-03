@@ -19,11 +19,17 @@
 ## Note that not all methods need be implemented.  Primarily, not all layers necessarily have any
 ## parameters, so anything associated with getting or updating parameters does nothing or returns
 ## nothing.
+##
+## History:
+##   1.00	01-Sept-2015	Initial version, extracting common methods from all layers
+##
+
+__author__ = 'Dana Hughes, dana.hughes@colorado.edu'
 
 
 import numpy as np
 
-class AbstractLayer:
+class AbstractLayer(object):
    """
    An abstract input layer, providing a common interface to all layers in a neural network
    """
@@ -38,8 +44,8 @@ class AbstractLayer:
       self.input = None
       self.output = None
       self.delta = None
-      self.gradient = None
-      self.parameters = None
+      self.gradient = np.zeros((0,0))
+      self.parameters = np.zeros((0,0))
 
       # Layers have input and output connections.  Since there can be multiple connections,
       # Maintain a list of input and output connections

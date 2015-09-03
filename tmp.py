@@ -1,10 +1,10 @@
-from objectives.CrossEntropyObjective import *
-from layers.InputLayer import *
-from layers.SigmoidLayer import *
-from layers.TanhLayer import *
-from layers.SoftmaxLayer import *
-from connections.FullConnection import *
-from connections.Bias import *
+from nn.components.objectives.CrossEntropyObjective import *
+from nn.components.layers.InputLayer import *
+from nn.components.layers.SigmoidLayer import *
+from nn.components.layers.TanhLayer import *
+from nn.components.layers.SoftmaxLayer import *
+from nn.components.connections.FullConnection import *
+from nn.components.connections.Bias import *
 from datasets.iris import *
 
 dataset, targets = load_iris_data()
@@ -19,12 +19,12 @@ bias2 = Bias(3)
 output_layer = SoftmaxLayer()
 objective = CrossEntropyObjective()
 
-conn1.setInputConnection(input_layer)
-conn1.setOutputConnection(hidden_layer)
-conn2.setInputConnection(hidden_layer)
-conn2.setOutputConnection(output_layer)
-bias1.setOutputConnection(hidden_layer)
-bias2.setOutputConnection(output_layer)
+conn1.setFromLayer(input_layer)
+conn1.setToLayer(hidden_layer)
+conn2.setFromLayer(hidden_layer)
+conn2.setToLayer(output_layer)
+bias1.setToLayer(hidden_layer)
+bias2.setToLayer(output_layer)
 
 input_layer.output_connections.append(conn1)
 hidden_layer.input_connections.append(conn1)

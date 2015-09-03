@@ -2,18 +2,22 @@
 ##
 
 import numpy as np
+from AbstractConnection import AbstractConnection
 
-
-class FullConnection:
+class FullConnection(AbstractConnection):
    """
-   An input layer
+   A connection which fully links two layers.
    """
 
    def __init__(self, inputSize, outputSize):
       """
+      Create a new full connection
       """
 
-      self.weights = np.zeros((inputSize, outputSize))
+      # Properly initialize the abstract connection
+      AbstractConnection.__init__(self)
+
+      self.parameters = np.zeros((inputSize, outputSize))
       self.dimensions = (inputSize, outputSize)
 
       self.inputs = np.zeros((0,inputSize))
@@ -21,30 +25,13 @@ class FullConnection:
 
       self.gradient = np.zeros(self.dimensions)
 
-      self.input_connection = None
-      self.output_connection = None
-
 
    def randomize(self):
       """
+      Randomize the weights
       """
 
-      self.weights = np.random.uniform(-0.1, 0.1, self.dimensions)
-
-
-   def setInputConnection(self, layer):
-      """
-      """
-
-      self.input_connection = layer
-
-
-
-   def setOutputConnection(self, layer):
-      """
-      """
-
-      self.output_connection = layer
+      self.parameters = np.random.uniform(-0.1, 0.1, self.dimensions)
 
 
    def forward(self):
@@ -52,8 +39,8 @@ class FullConnection:
       Perform a forward step
       """
 
-      self.inputs = self.input_connection.getOutput()
-      self.outputs = np.dot(self.inputs, self.weights)   # This ensures correct dimensions
+      self.inputs = self.from_layer.getOutput()
+      self.outputs = np.dot(self.inputs, self.parameters)   # This ensures correct dimensions
 
 
    def backward(self):
@@ -61,7 +48,7 @@ class FullConnection:
       Perform a backprop step
       """
 
-      self.delta = np.dot(self.output_connection.getDelta(), self.weights.transpose())
+      self.delta = np.dot(self.to_layer.getDelta(), self.parameters.transpose())
 
 
    def reset(self):
@@ -72,58 +59,20 @@ class FullConnection:
       self.gradient = np.zeros(self.dimensions)
 
 
-   def updateParameters(self, params):
+   def updateParameters(self, dParams):
       """
-      Update the parameters
-      """
-
-      self.weights += params
-
-
-   def getParameters(self):
-      """
-      Return the gradient of this layer
+      Update the weights in the weight matrix
       """
 
-      return self.weights
-
-
-   def getInput(self):
-      """
-      Provide the input to this unit
-      """
-
-      return self.inputs
-
-
-   def getOutput(self):
-      """
-      Provide the output from this unit
-      """
-
-      return self.outputs
+      self.parameters += dParams
 
 
    def updateParameterGradient(self):
       """
-      Update the parameter gradient with the appropriate weight change based on forward and backward pass
+      Update the weight matrix based on the outer tensor product of the forward
+      and backward passes
       """
 
-      self.gradient += np.tensordot(self.inputs.transpose(), self.output_connection.getDelta(), 1)
+      self.gradient += np.tensordot(self.inputs.transpose(), self.to_layer.getDelta(), 1)
 
 
-   def getParameterGradient(self):
-      """
-      Return the gradient after backpropagation
-      """
-
-      return self.gradient
-
-
-   def getDelta(self):
-      """
-      Return the delta after a backward pass
-      """
-
-      return self.delta
-       
