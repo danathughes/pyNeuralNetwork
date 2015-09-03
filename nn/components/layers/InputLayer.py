@@ -1,6 +1,12 @@
 ## InputLayer.py	Dana Hughes		01-Sept-2015
 ##
+## A simple layer which allows for providing an input to the network for the user.
+## This layer contains only an output port, and doesn't really do much except convert
+## from interfacing with the user to interfacing with the rest of the network
 ##
+## History:
+##	1.0	01-Sept-2015	Initial version.
+##	1.01	03-Sept-2015	Adjusted to include Ports.
 
 from AbstractLayer import AbstractLayer
 import numpy as np
@@ -18,24 +24,18 @@ class InputLayer(AbstractLayer):
       # Properly inherit the AbstractLayer
       AbstractLayer.__init__(self)
 
-      # Initialize the input (user provided) and output (after forward pass)
-      # Note that output is simply equivalent to the input
-      # Make the input as a dummy piece of data (one entry of zeros)
-      self.inputs = np.zeros((1, inputSize))
-      self.output = self.inputs
-
-   #   self.shape = (batchSize, inputSize)
+      # This layer only has a output port. 
+      self.output = OutputPort(inputSize)
 
 
-   def setInput(self, batch):
+
+   def setInput(self, inputBatch):
       """
       Set the input to the provided batch
       """
 
-      # Check that the provided data actually fits into what we have set up
-#      assert inputs.shape = self.shape, "Batch shape (%d, %d) does not equal input layer shape (%d, %d)" % (batch.shape[0], batch.shape[1], self.shape[0], self.shape[1])
-
-      self.inputs = batch
+      # Set the output of the output port to the provided batch
+      self.output.setOutput(inputBatch)
 
 
    def forward(self):
@@ -43,7 +43,8 @@ class InputLayer(AbstractLayer):
       Perform a forward step
       """
 
-      self.output = self.inputs
+      # Since there's only the output port, there's nothing to do
+      pass
 
 
    def backward(self):
