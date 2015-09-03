@@ -10,7 +10,7 @@ class InputLayer(AbstractLayer):
    An input layer
    """
 
-   def __init__(self, batchSize, inputSize):
+   def __init__(self, inputSize):
       """
       Create an input layer, with batchSize rows and inputSize columns
       """
@@ -20,12 +20,11 @@ class InputLayer(AbstractLayer):
 
       # Initialize the input (user provided) and output (after forward pass)
       # Note that output is simply equivalent to the input
-      self.inputs = np.zeros((batchSize, inputSize))
+      # Make the input as a dummy piece of data (one entry of zeros)
+      self.inputs = np.zeros((1, inputSize))
       self.output = self.inputs
 
-      self.shape = (batchSize, inputSize)
-
-      self.output_connections = []
+   #   self.shape = (batchSize, inputSize)
 
 
    def setInput(self, batch):
@@ -36,7 +35,7 @@ class InputLayer(AbstractLayer):
       # Check that the provided data actually fits into what we have set up
 #      assert inputs.shape = self.shape, "Batch shape (%d, %d) does not equal input layer shape (%d, %d)" % (batch.shape[0], batch.shape[1], self.shape[0], self.shape[1])
 
-      self.inputs[:] = batch
+      self.inputs = batch
 
 
    def forward(self):

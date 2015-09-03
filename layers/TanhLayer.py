@@ -1,17 +1,17 @@
-## SigmoidLayer.py	Dana Hughes		01-Sept-2015
+## TanhLayer.py		Dana Hughes		01-Sept-2015
 ##
-## A layer which implements the sigmoid activation function
+## A layer which implements hyperbolic activation function
 
 
 from AbstractLayer import AbstractLayer
 import numpy as np
 
-class SigmoidLayer(AbstractLayer):
+class TanhLayer(AbstractLayer):
    """
    A layer which implements sigmoid activation
    """
 
-   def __init__(self): #, layerSize):
+   def __init__(self):#, layerSize):
       """
       A sigmoid layer can be connected to several inputs
       """
@@ -33,7 +33,7 @@ class SigmoidLayer(AbstractLayer):
       self.input = sum([in_connection.getOutput() for in_connection in self.input_connections])
 
       # Perform the activation (logistic function)
-      self.output = 1.0 / (1.0 + np.exp(-self.input))
+      self.output = (1.0 - np.exp(-self.input)) / (1.0 + np.exp(-self.input))
 
 
    def backward(self):
@@ -41,4 +41,4 @@ class SigmoidLayer(AbstractLayer):
       Perform a backprop step - gradient is the derivative of the sigmoid functon
       """
             
-      self.delta = self.output * (1.0 - self.output) * sum([out.getDelta() for out in self.output_connections])
+      self.delta = (1.0 - self.output**2) * sum([out.getDelta() for out in self.output_connections])
