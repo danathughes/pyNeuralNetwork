@@ -9,19 +9,21 @@ class FullConnection(AbstractConnection):
    A connection which fully links two layers.
    """
 
-   def __init__(self, inputSize, outputSize):
+   def __init__(self, from_port, to_port):
       """
       Create a new full connection
       """
 
       # Properly initialize the abstract connection
-      AbstractConnection.__init__(self)
+      AbstractConnection.__init__(self, from_port, to_port)
 
-      self.parameters = np.zeros((inputSize, outputSize))
-      self.dimensions = (inputSize, outputSize)
+      # Determine the dimensions and initialize the weight matrix
+      self.dimensions = (from_port.size, to_port.size)
+      self.parameters = np.zeros(self.dimensions)
 
-      self.inputs = np.zeros((0,inputSize))
-      self.outputs = np.zeros((0,outputSize))
+      self.input = np.zeros((1,from_port.size))
+      self.output = np.zeros((1,to_port.size))
+      self.delta = np.zeros((1,from_port.size))
 
       self.gradient = np.zeros(self.dimensions)
 
@@ -39,8 +41,8 @@ class FullConnection(AbstractConnection):
       Perform a forward step
       """
 
-      self.inputs = self.from_layer.getOutput()
-      self.outputs = np.dot(self.inputs, self.parameters)   # This ensures correct dimensions
+      self.input = self.from_port.getOutput()
+      self.output = np.dot(self.input, self.parameters)   # This ensures correct dimensions
 
 
    def backward(self):
@@ -48,7 +50,7 @@ class FullConnection(AbstractConnection):
       Perform a backprop step
       """
 
-      self.delta = np.dot(self.to_layer.getDelta(), self.parameters.transpose())
+      self.delta = np.dot(self.to_port.getDelta(), self.parameters.transpose())
 
 
    def reset(self):
@@ -73,6 +75,6 @@ class FullConnection(AbstractConnection):
       and backward passes
       """
 
-      self.gradient += np.tensordot(self.inputs.transpose(), self.to_layer.getDelta(), 1)
+      self.gradient += np.tensordot(self.input.transpose(), self.to_port.getDelta(), 1)
 
 

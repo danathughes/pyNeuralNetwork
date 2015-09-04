@@ -1,92 +1,73 @@
 from nn.components.objectives.CrossEntropyObjective import *
+from nn.components.objectives.MSEObjective import *
 from nn.components.layers.InputLayer import *
 from nn.components.layers.SigmoidLayer import *
 from nn.components.layers.TanhLayer import *
+from nn.components.layers.ReluLayer import *
+from nn.components.layers.SoftReluLayer import *
 from nn.components.layers.SoftmaxLayer import *
 from nn.components.connections.FullConnection import *
 from nn.components.connections.Bias import *
+from nn.models.NeuralNetwork import NeuralNetwork
 from datasets.iris import *
 
 dataset, targets = load_iris_data()
 
+# Create a neural network
+net = NeuralNetwork()
+
+# Create layers
 input_layer = InputLayer(4)
 target_layer = InputLayer(3)
-conn1 = FullConnection(4,5)
-bias1 = Bias(5)
-hidden_layer = TanhLayer()
-conn2 = FullConnection(5,3)
-bias2 = Bias(3)
-output_layer = SoftmaxLayer()
-objective = CrossEntropyObjective()
+hidden_layer = TanhLayer(5)
+output_layer = SoftmaxLayer(3)
 
-conn1.setFromLayer(input_layer)
-conn1.setToLayer(hidden_layer)
-conn2.setFromLayer(hidden_layer)
-conn2.setToLayer(output_layer)
-bias1.setToLayer(hidden_layer)
-bias2.setToLayer(output_layer)
+# Make the connection from input to output
+conn1 = FullConnection(input_layer.output, hidden_layer.input)
+bias1 = Bias(hidden_layer.input)
+conn2 = FullConnection(hidden_layer.output, output_layer.input)
+bias2 = Bias(output_layer.input)
 
-input_layer.output_connections.append(conn1)
-hidden_layer.input_connections.append(conn1)
-hidden_layer.input_connections.append(bias1)
-hidden_layer.output_connections.append(conn2)
-output_layer.input_connections.append(conn2)
-output_layer.input_connections.append(bias2)
-output_layer.output_connections.append(objective)
+# Add the objective
+objective = CrossEntropyObjective(output_layer.output, target_layer.output)
 
-objective.setOutputLayer(output_layer)
-objective.setTargetLayer(target_layer)
+net.addLayer(input_layer)
+net.addLayer(target_layer)
+net.addConnection(conn1)
+net.addConnection(bias1)
+net.addLayer(hidden_layer)
+net.addConnection(conn2)
+net.addConnection(bias2)
+net.addLayer(output_layer)
+net.addObjective(objective)
 
-input_layer.setInput(dataset)
-target_layer.setInput(targets)
+net.setInputLayer(input_layer)
+net.setTargetLayer(target_layer)
+net.setInput(dataset)
+net.setTarget(targets)
+net.setOutputLayer(output_layer)
+net.setObjective(objective)
 
-conn1.randomize()
-conn2.randomize()
-bias1.randomize()
-bias2.randomize()
+# Randomize these connections
+net.randomize()
 
-def fwd():
-   input_layer.forward()
-   target_layer.forward()
-   conn1.forward()
-   bias1.forward()
-   hidden_layer.forward()
-   conn2.forward()
-   bias2.forward()
-   output_layer.forward()
-   objective.forward()
-
-def bwd():
-   objective.backward()
-   output_layer.backward()
-   conn2.backward()
-   bias2.backward()
-   hidden_layer.backward()
-   conn1.backward()
-   bias1.backward()
-   target_layer.backward()
-   input_layer.backward()
+# Set the input and targets
+# Everythin from here on out deals directly with net
 
 for i in range(10000):
-   conn1.reset()
-   conn2.reset()
-   bias1.reset()
-   bias2.reset()
-   fwd()
-   print i, objective.getObjective()
-   bwd()
-   conn1.updateParameterGradient()
-   g = conn1.getParameterGradient()
-   conn1.updateParameters(0.5*g/150)
-   conn2.updateParameterGradient()
-   g = conn2.getParameterGradient()
-   conn2.updateParameters(0.5*g/150)
-   bias1.updateParameterGradient()
-   g = bias1.getParameterGradient()
-   bias1.updateParameters(0.5*g/150)
-   bias2.updateParameterGradient()
-   g = bias2.getParameterGradient()
-   bias2.updateParameters(0.5*g/150)
-   
-   
-print output_layer.getOutput()
+   net.reset()
+   net.forward()
+   print i, net.getObjective()
+   net.backward()
+
+   net.update()
+
+   gradients = net.getParameterGradients()
+   update = {}
+
+   for conn, grad in gradients.items():
+      update[conn] = 0.1*grad/150
+      
+   net.updateParameters(update)
+
+print net.getOutput()

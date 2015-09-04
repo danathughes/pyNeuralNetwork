@@ -10,23 +10,21 @@ class Bias(AbstractConnection):
    A bias for use as input to a layer
    """
 
-   def __init__(self, size):
+   def __init__(self, to_port):
       """
       Create a new bias
       """
 
       # Properly initialize the Bias
-      AbstractConnection.__init__(self)
+      AbstractConnection.__init__(self, None, to_port)
 
-      self.parameters = np.zeros((1, size))
-      self.dimensions = (1, size)
+      self.parameters = np.zeros((1, to_port.size))
+      self.dimensions = (1, to_port.size)
 
       self.input = np.zeros((0,0))
-      self.output = np.zeros((1,size))
+      self.output = np.zeros((1,to_port.size))
 
       self.gradient = np.zeros(self.dimensions)
-
-      self.from_layer = None
 
 
    def randomize(self):
@@ -35,14 +33,6 @@ class Bias(AbstractConnection):
       """
 
       self.parameters = np.random.uniform(-0.1, 0.1, self.dimensions)
-
-
-   def setFromLayer(self, layer):
-      """
-      Does nothing, as bias units only output to a layer
-      """
-
-      pass
 
 
    def forward(self):
@@ -66,14 +56,15 @@ class Bias(AbstractConnection):
       Update the parameters
       """
 
-      self.parameters += params
+      self.parameters += dParams
+
 
    def updateParameterGradient(self):
       """
       Update the parameter gradient with the appropriate weight change based on forward and backward pass
       """
 
-      self.gradient += np.sum(self.output_connection.getDelta(), 0)
+      self.gradient += np.sum(self.to_port.getDelta(), 0)
 
 
    def getParameterGradient(self):

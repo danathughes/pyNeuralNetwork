@@ -12,30 +12,38 @@ class CrossEntropyObjective:
    predictions and targets
    """
 
-   def __init__(self):
+   def __init__(self, output_port, target_port):
       """
       Create a new instance of a cross entropy objective.
       """
 
-      self.outputLayer = None
-      self.targetLayer = None
       self.objective = None
       self.delta = None
 
-   def setOutputLayer(self, layer):
+      # Connect to the ports and mirror the connection
+      self.output_port = output_port
+      self.target_port = target_port
+
+      self.output_port.addConnection(self)
+      self.target_port.addConnection(self)
+
+
+   def setOutputPort(self, port):
       """
       Connect the objective to its output layer.
       """
 
-      self.outputLayer = layer
+      self.output_port = port
+      self.output_port.addConnection(self)
 
 
-   def setTargetLayer(self, layer):
+   def setTargetPort(self, port):
       """
       Connect the objective to its target layer.
       """
 
-      self.targetLayer = layer
+      self.target_port = port
+      self.target_port.addConnection(self)
 
 
    def getObjective(self):
@@ -51,9 +59,8 @@ class CrossEntropyObjective:
       Perform a forward pass to calculate the activation (objective)
       """
 
-
-      self.objective = -np.sum(self.targetLayer.getOutput() * np.log(self.outputLayer.getOutput()))
-      self.objective += -np.sum((1.0 - self.targetLayer.getOutput())*(np.log(1.0 - self.outputLayer.getOutput())))
+      self.objective = -np.sum(self.target_port.getOutput() * np.log(self.output_port.getOutput()))
+      self.objective += -np.sum((1.0 - self.target_port.getOutput())*(np.log(1.0 - self.output_port.getOutput())))
 
 
    def backward(self):
@@ -61,8 +68,8 @@ class CrossEntropyObjective:
       Perform a backward pass to calculate the delta of this module
       """
 
-      self.delta = (self.targetLayer.getOutput() - self.outputLayer.getOutput())
-      self.delta /= (self.outputLayer.getOutput() * (1.0 - self.outputLayer.getOutput()))
+      self.delta = (self.target_port.getOutput() - self.output_port.getOutput())
+      self.delta /= (self.output_port.getOutput() * (1.0 - self.output_port.getOutput()))
 
 
    def getParameterGradient(self):

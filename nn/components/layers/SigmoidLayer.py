@@ -8,6 +8,7 @@
 
 
 from AbstractLayer import AbstractLayer
+from AbstractLayer import InputPort, OutputPort
 import numpy as np
 
 class SigmoidLayer(AbstractLayer):

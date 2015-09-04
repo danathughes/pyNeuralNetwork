@@ -66,13 +66,20 @@ class InputPort(object):
       return sum([conn.getOutput() for conn in self.connections])
 
 
+   def setDelta(self, delta):
+      """
+      Set the delta of this port
+      """
+
+      self.delta = delta
+
+
    def getDelta(self):
       """
       Get the delta from this port.  Used during backward pass.
       """
 
       return self.delta
-
 
 
 class OutputPort(object):
@@ -120,7 +127,7 @@ class OutputPort(object):
       Calculate the net delta from connections to this port
       """
 
-      sum([conn.getDelta() for conn in self.connections])
+      return sum([conn.getDelta() for conn in self.connections])
 
 
 class AbstractLayer(object):

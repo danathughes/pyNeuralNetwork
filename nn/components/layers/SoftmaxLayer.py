@@ -9,6 +9,7 @@
 
 
 from AbstractLayer import AbstractLayer
+from AbstractLayer import InputPort, OutputPort
 import numpy as np
 
 class SoftmaxLayer(AbstractLayer):
@@ -16,7 +17,7 @@ class SoftmaxLayer(AbstractLayer):
    A layer which implements sigmoid activation
    """
 
-   def __init__(self):#, layerSize):
+   def __init__(self, layerSize):
       """
       A sigmoid layer can be connected to several inputs
       """
@@ -34,12 +35,9 @@ class SoftmaxLayer(AbstractLayer):
       Perform a forward step - activate the net input using logistic function
       """
 
-      # Calculate the net input to this layer
-      self.input = sum([in_connection.getOutput() for in_connection in self.input_connections])
-
       # Perform the activation
-      self.output.setOutput(np.exp(self.input))
-      self.output.setOutput(self.output.getOutput() / (np.array([np.sum(self.output.getOutput(),1)]).transpose())
+      self.output.setOutput(np.exp(self.input.getNetInput()))
+      self.output.setOutput(self.output.getOutput() / (np.array([np.sum(self.output.getOutput(),1)]).transpose()))
 
 
    def backward(self):
@@ -48,3 +46,4 @@ class SoftmaxLayer(AbstractLayer):
       """
             
       self.input.setDelta(self.output.getOutput() * (1.0 - self.output.getOutput()) * self.output.getNetDelta())
+

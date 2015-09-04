@@ -11,30 +11,38 @@ class MSEObjective:
    predictions and targets
    """
 
-   def __init__(self):
+   def __init__(self, output_port, target_port):
       """
       Create a new instance of an MSE objective.
       """
 
-      self.outputLayer = None
-      self.targetLayer = None
       self.objective = None
       self.delta = None
 
-   def setOutputLayer(self, layer):
+      # Connect to the ports and mirror the connection
+      self.output_port = output_port
+      self.target_port = target_port
+
+      self.output_port.addConnection(self)
+      self.target_port.addConnection(self)
+
+
+   def setOutputPort(self, port):
       """
       Connect the objective to its output layer.
       """
 
-      self.outputLayer = layer
+      self.output_port = port
+      self.output_port.addConnection(self)
 
 
-   def setTargetLayer(self, layer):
+   def setTargetPort(self, port):
       """
       Connect the objective to its target layer.
       """
 
-      self.targetLayer = layer
+      self.target_port = port
+      self.target_port.addConnection(self)
 
 
    def getObjective(self):
@@ -50,7 +58,7 @@ class MSEObjective:
       Perform a forward pass to calculate the activation (objective)
       """
 
-      self.objective = 0.5 * np.sum((self.targetLayer.getOutput() - self.outputLayer.getOutput())**2)
+      self.objective = 0.5 * np.sum((self.target_port.getOutput() - self.output_port.getOutput())**2)
 
 
    def backward(self):
@@ -58,7 +66,7 @@ class MSEObjective:
       Perform a backward pass to calculate the delta of this module
       """
 
-      self.delta = self.targetLayer.getOutput() - self.outputLayer.getOutput()
+      self.delta = self.target_port.getOutput() - self.output_port.getOutput()
 
 
    def getParameterGradient(self):

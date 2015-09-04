@@ -9,6 +9,7 @@
 ##	1.01	03-Sept-2015	Adjusted to include Ports.
 
 from AbstractLayer import AbstractLayer
+from AbstractLayer import InputPort, OutputPort
 import numpy as np
 
 class InputLayer(AbstractLayer):
@@ -26,7 +27,6 @@ class InputLayer(AbstractLayer):
 
       # This layer only has a output port. 
       self.output = OutputPort(inputSize)
-
 
 
    def setInput(self, inputBatch):

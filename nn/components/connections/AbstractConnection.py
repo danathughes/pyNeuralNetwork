@@ -33,7 +33,7 @@ class AbstractConnection(object):
    An abstract connection, providing a common interface to all connections in a neural network
    """
 
-   def __init__(self):
+   def __init__(self, from_port, to_port):
       """
       Create a Connection which contains no input, output, delta or gradient
       """
@@ -49,24 +49,30 @@ class AbstractConnection(object):
       self.parameters = np.zeros((0,0))
 
       # Connections typically have a from layer and a to layer
-      self.from_layer = None
-      self.to_layer = None
+      self.from_port = from_port
+      self.to_port = to_port
+
+      # Reflect on the ports that they are connected to this connection
+      if self.from_port:
+         self.from_port.addConnection(self)
+      if self.to_port:
+         self.to_port.addConnection(self)
 
 
-   def setFromLayer(self, layer):
+   def setFromPort(self, port):
       """
-      Connect to the layer which feeds into this connection
-      """
-
-      self.from_layer = layer
-
-
-   def setToLayer(self, layer):
-      """
-      Connect to the layer which this connection feeds into
+      Connect to the port which feeds into this connection
       """
 
-      self.to_layer = layer
+      self.from_port = port
+
+
+   def setToPort(self, port):
+      """
+      Connect to the port which this connection feeds into
+      """
+
+      self.to_port = port
 
 
    def forward(self):
@@ -114,7 +120,7 @@ class AbstractConnection(object):
       Provide the input to this unit
       """
 
-      return self.input()
+      return self.input
 
 
    def getOutput(self):
