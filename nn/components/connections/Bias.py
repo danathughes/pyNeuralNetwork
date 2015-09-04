@@ -40,7 +40,7 @@ class Bias(AbstractConnection):
       Perform a forward step (just propagate the weights)
       """
 
-      self.outputs = self.parameters  
+      self.output = self.parameters  
 
 
    def reset(self):

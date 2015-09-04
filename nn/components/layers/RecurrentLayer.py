@@ -4,55 +4,107 @@
 ##
 ## History:
 ##	1.0	03-Sept-2015	Initial version.
+##	1.01	04-Sept-2015	Modified internal workings, replacing a MockConnection
+##				with a HistoryLayer class.  Also, allowed arbitrary
+##				Layer and Connection classes to be used.
 
 
 from AbstractLayer import AbstractLayer
 from AbstractLayer import InputPort, OutputPort
 from nn.components.connections.IdentityConnection import IdentityConnection
 from nn.components.connections.FullConnection import FullConnection
+from nn.components.layers.SigmoidLayer import SigmoidLayer
 import numpy as np
 
 
-class MockConnectionOutput(object):
+## HistoryLayer
+##
+##
+
+class HistoryLayer(AbstractLayer):
    """
-   A dummy version of a connection output.  This allows for direct setting
-   of a mock output connection, to interface with the base layer in a 
-   recurrent layer
+   A useful internal layer for Recurrent Layers which maintains a history
+   of activations.
    """
 
-   def __init__(self, port):
+   def __init__(self, size, initialHistory):
       """
-      Make a new mock connection output and connect it to the port
-      """
-
-      # Start with a dummy value
-      self.value = np.zeros((0,0))
-      self.port = port
-      self.port.addConnection(self)
-
-
-   def setOutput(self, value):
-      """
-      Assign the output to the current value
+      Create a History layer
       """
 
-      self.value = value
+      AbstractLayer.__init__(self)
+      self.layerSize = size
+
+      self.input = InputPort(self.layerSize)
+      self.output = OutputPort(self.layerSize)
+
+      self.history = []
+
+      self.output.value[:] = initialHistory
+      self.initialHistory = initialHistory
 
 
-   def getOutput(self):
+   def forward(self):
       """
-      Produce the current output
+      Do nothing.  step handles this layer correctly
+      """
+  
+      pass
+
+
+   def backward(self):
+      """
+      Do nothing.  backstep handles this layer correctly
       """
 
-      return self.value
+      pass
 
+
+   def step(self):
+      """
+      Push the current output into the history, and propagate input forward
+      """
+
+      self.history.append(self.output.value[:])
+      self.output.value = self.input.getNetInput()
+
+
+   def backstep(self):
+      """
+      Pop the output from the history, and propagate the delta backward
+      """
+
+      self.input.setDelta(self.output.getNetDelta())
+      self.output.value = self.history.pop()
+
+
+   def reset(self):
+      """
+      Reset the history to empty and output to initialHistory
+      """
+
+      self.history = []
+      self.output.value[:] = self.initialHistory
+
+
+   def setDelta(self, delta):
+      """
+      Set the delta on the input layer to the provided value
+      """
+
+      self.input.setDelta(delta)
+
+
+## RecurrentLayer
+##
+##
 
 class RecurrentLayer(AbstractLayer):
    """
    A layer which implements a delay in time
    """
 
-   def __init__(self, baseLayer, initialHistory):
+   def __init__(self, size, initialHistory, baseLayerClass = SigmoidLayer, connectionClass = FullConnection):
       """
       A recurrent layer extends the activation layer by adding a full recurrent
       connection from the output of the layer to its input, delayed by a 
@@ -63,23 +115,21 @@ class RecurrentLayer(AbstractLayer):
       AbstractLayer.__init__(self)
 
       # Extract the layerSize from the provided activation layer
-      self.baseLayer = baseLayer
-      self.layerSize = self.baseLayer.input.size
+      self.baseLayer = baseLayerClass(size)
+      self.layerSize = size
+      self.historyLayer = HistoryLayer(self.layerSize, initialHistory)
 
       # A recurrent layer has an input port, history port and output port
       self.input = self.baseLayer.input
-      self.history = InputPort(self.layerSize)
       self.output = self.baseLayer.output
 
-      # Make two connections - the recurrent connection and a mock connection output from
+      # Make two connections - the recurrent connection to the history and a connection from
       # the history to the activationLayer
-      self.recurrentConnection = FullConnection(self.output, self.history)
-      self.historyOutput = MockConnectionOutput(self.baseLayer.input)
-      self.historyOutput.setOutput(initialHistory)
+      self.recurrentConnection = connectionClass(self.output, self.historyLayer.input)
+      self.historyConnection = IdentityConnection(self.historyLayer.output, self.input)
 
       # Keep track of how many timesteps there were, and the initial history incase of reset
       self.timestep = 0
-      self.initialHistory = initialHistory
 
 
    def forward(self):
@@ -88,6 +138,8 @@ class RecurrentLayer(AbstractLayer):
       """
 
       # Nothing much to do, simply call forward on the activation layer and recurrent connection
+      self.historyLayer.forward()
+      self.historyConnection.forward()
       self.baseLayer.forward()
       self.recurrentConnection.forward()
 
@@ -97,8 +149,10 @@ class RecurrentLayer(AbstractLayer):
       Perform the backprop step on the activation layer and recurrent connection
       """
 
-      self.baseLayer.backward()
       self.recurrentConnection.backward()
+      self.baseLayer.backward()
+      self.historyConnection.backward()
+      self.historyLayer.backward()
 
 
    def step(self):
@@ -107,7 +161,7 @@ class RecurrentLayer(AbstractLayer):
       """
 
       self.timestep += 1
-      self.historyOutput.setOutput(self.history.getNetInput())
+      self.historyLayer.step()
 
 
    def reset(self):
@@ -116,20 +170,22 @@ class RecurrentLayer(AbstractLayer):
       """
 
       self.timestep = 0
-      self.historyOutput.setOutput(self.initialHistory)
-
+      self.historyLayer.reset()
+     
 
    def getRecurrentConnection(self):
       """
+      Provide the recurrent connection
       """
       return self.recurrentConnection
 
 
    def setHistoryDelta(self, delta):
       """
+      Set the delta on the history layer to the provided value
       """
 
-      self.history.setDelta(delta)
+      self.historyLayer.setDelta(delta)
 
 
    def backstep(self):
@@ -137,4 +193,5 @@ class RecurrentLayer(AbstractLayer):
       Step backward in time.  Propagate the input delta to the history
       """
 
-      self.history.setDelta(self.input.getDelta())
+      self.timestep -= 1
+      self.historyLayer.backstep()
