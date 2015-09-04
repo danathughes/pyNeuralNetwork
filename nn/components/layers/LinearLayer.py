@@ -1,19 +1,18 @@
-## SigmoidLayer.py	Dana Hughes		01-Sept-2015
+## LinearLayer.py	Dana Hughes		01-Sept-2015
 ##
-## A layer which implements the sigmoid activation function.
+## A layer which has not activation function, simply stores values
 ##
 ## History:
-##	1.0	01-Sept-2015	Initial version.
-##	1.01	03-Sept-2015	Adjusted to include Ports.
+##	1.0	03-Sept-2015	Initial version.
 
 
 from AbstractLayer import AbstractLayer
 from AbstractLayer import InputPort, OutputPort
 import numpy as np
 
-class SigmoidLayer(AbstractLayer):
+class LinearLayer(AbstractLayer):
    """
-   A layer which implements sigmoid activation
+   A linear layer which has not activation function
    """
 
    def __init__(self, layerSize):
@@ -35,7 +34,7 @@ class SigmoidLayer(AbstractLayer):
       """
 
       # Perform the activation (logistic function)
-      self.output.setOutput(1.0 / (1.0 + np.exp(-self.input.getNetInput())))
+      self.output.setOutput(self.input.getNetInput())
 
 
    def backward(self):
@@ -43,5 +42,5 @@ class SigmoidLayer(AbstractLayer):
       Perform a backprop step - gradient is the derivative of the sigmoid functon
       """
             
-      self.input.setDelta(self.output.getOutput() * (1.0 - self.output.getOutput()) * self.output.getNetDelta())
+      self.input.setDelta(self.output.getNetDelta())
 

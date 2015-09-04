@@ -9,6 +9,7 @@ from nn.components.layers.SoftmaxLayer import *
 from nn.components.connections.FullConnection import *
 from nn.components.connections.Bias import *
 from nn.models.NeuralNetwork import NeuralNetwork
+from trainers.SGD import SGDTrainer
 from datasets.iris import *
 
 dataset, targets = load_iris_data()
@@ -52,22 +53,13 @@ net.setObjective(objective)
 net.randomize()
 
 # Set the input and targets
-# Everythin from here on out deals directly with net
+# Everything from here on out deals directly with net
+
+# Create a trainer
+trainer = SGDTrainer(net, learning_rate = 0.1)
 
 for i in range(10000):
-   net.reset()
-   net.forward()
+   trainer.trainBatch((dataset, targets))
    print i, net.getObjective()
-   net.backward()
-
-   net.update()
-
-   gradients = net.getParameterGradients()
-   update = {}
-
-   for conn, grad in gradients.items():
-      update[conn] = 0.1*grad/150
-      
-   net.updateParameters(update)
 
 print net.getOutput()

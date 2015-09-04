@@ -233,3 +233,22 @@ class NeuralNetwork(object):
       return gradients
 
 
+   def gradient(self, dataset):
+      """
+      Perform a training step on this model to get the gradient w.r.t. the dataset
+      """
+
+      # The training data should consist of inputs and targets
+      inputs = dataset[0]
+      targets = dataset[1]
+
+      self.setInput(inputs)
+      self.setTarget(targets)
+
+      # Reset the gradients, perform forward and backward passes, and update
+      self.reset()
+      self.forward()
+      self.backward()
+      self.update()
+
+      return self.getParameterGradients()

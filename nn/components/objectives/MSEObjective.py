@@ -58,7 +58,8 @@ class MSEObjective:
       Perform a forward pass to calculate the activation (objective)
       """
 
-      self.objective = 0.5 * np.sum((self.target_port.getOutput() - self.output_port.getOutput())**2)
+      numExamples = self.output_port.getOutput().shape[0]
+      self.objective = 0.5 * np.sum((self.output_port.getOutput() - self.target_port.getOutput())**2) / numExamples
 
 
    def backward(self):
@@ -66,7 +67,8 @@ class MSEObjective:
       Perform a backward pass to calculate the delta of this module
       """
 
-      self.delta = self.target_port.getOutput() - self.output_port.getOutput()
+      numExamples = self.output_port.getOutput().shape[0]
+      self.delta = (self.output_port.getOutput() - self.target_port.getOutput()) / numExamples
 
 
    def getParameterGradient(self):
