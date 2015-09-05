@@ -4,14 +4,20 @@ from nn.components.layers.InputLayer import *
 from nn.components.connections.FullConnection import *
 from nn.components.connections.Bias import *
 from nn.components.objectives.MSEObjective import *
+from nn.models.RecurrentNeuralNetwork import *
+from trainers.SGD import SGDTrainer
 
 import numpy as np
 
+# Build a network
 
-init_hist = np.zeros((1,5))
+net = RecurrentNeuralNetwork()
+
 inp = InputLayer(1)
-rec = RecurrentLayer(5, init_hist)
+rec = RecurrentLayer(5)
 out = SigmoidLayer(1)
+
+rec.zeroInitialHistoryBatch(2)
 
 i2r = FullConnection(inp.output, rec.input)
 r2o = FullConnection(rec.output, out.input)
@@ -28,96 +34,45 @@ rbias.randomize()
 obias.randomize()
 rec.recurrentConnection.randomize()
 
-def fwd():
-   inp.forward()
-   tgt.forward()
-   i2r.forward()
-   rbias.forward()
-   rec.forward()
-   r2o.forward()
-   obias.forward()
-   out.forward()
-   obj.forward()
+net.addLayer(inp)
+net.addLayer(tgt)
+net.addConnection(i2r)
+net.addConnection(rbias)
+net.addRecurrentLayer(rec)
+net.addConnection(r2o)
+net.addConnection(obias)
+net.addLayer(out)
+net.addObjective(obj)
+
+net.setInputLayer(inp)
+net.setTargetLayer(tgt)
+net.setOutputLayer(out)
+net.setObjective(obj)
+
+sgd = SGDTrainer(net, learning_rate=0.1, momentum = 0.9)
 
 
-def bwd():
-   obj.backward()
-   out.backward()
-   obias.backward()
-   r2o.backward()
-   rec.backward()
-   rbias.backward()
-   i2r.backward()
-   tgt.backward()
-   inp.backward()
+seq = np.array([[[1],[1],[0]],[[1],[0],[0]],[[1],[1],[0]],[[0],[0],[0]],[[0],[1],[0]],[[0],[0],[0]],[[1],[1],[0]],[[1],[0],[0]],[[1],[1],[0]],[[0],[0],[0]],[[0],[1],[0]],[[0],[0],[0]],[[1],[1],[0]],[[1],[0],[0]],[[1],[1],[0]],[[0],[0],[0]],[[0],[1],[0]],[[0],[0],[0]],[[1],[1],[0]],[[1],[0],[0]],[[1],[1],[0]],[[0],[0],[0]],[[0],[1],[0]],[[0],[0],[0]]])
+tar = np.array([[[1],[1],[0]],[[0],[1],[0]],[[1],[0],[0]],[[1],[0],[0]],[[1],[1],[0]],[[1],[1],[0]],[[0],[0],[0]],[[1],[0],[0]],[[0],[1],[0]],[[0],[1],[0]],[[0],[0],[0]],[[0],[0],[0]],[[1],[1],[0]],[[0],[1],[0]],[[1],[0],[0]],[[1],[0],[0]],[[1],[1],[0]],[[1],[1],[0]],[[0],[0],[0]],[[1],[0],[0]],[[0],[1],[0]],[[0],[1],[0]],[[0],[0],[0]],[[0],[0],[0]]])
 
+dataset = (seq, tar)
 
-def update():
-   i2r.updateParameterGradient()
-   rbias.updateParameterGradient()
-   r2o.updateParameterGradient()
-   obias.updateParameterGradient()
-   rec.recurrentConnection.updateParameterGradient()
-
-
-def grad_dec():
-   g = i2r.getParameterGradient()
-   i2r.updateParameters(-0.9*g)
-   g = r2o.getParameterGradient()
-   r2o.updateParameters(-0.9*g)
-   g = rbias.getParameterGradient()
-   rbias.updateParameters(-0.9*g)
-   g = obias.getParameterGradient()
-   obias.updateParameters(-0.9*g)
-   g = rec.recurrentConnection.getParameterGradient()
-   rec.recurrentConnection.updateParameters(-0.9*g)
-   
-
-def reset():
-   rec.reset()
-   i2r.reset()
-   r2o.reset()
-   rbias.reset()
-   obias.reset()
-   rec.recurrentConnection.reset()
-
-seq = np.array([[[1]],[[1]],[[1]],[[0]],[[0]],[[0]],[[1]],[[1]],[[1]],[[0]],[[0]],[[0]]])
-tar = np.array([[[1]],[[0]],[[1]],[[1]],[[1]],[[1]],[[0]],[[1]],[[0]],[[0]],[[0]],[[0]]])
-
-def train_seq():
-   tot_obj = 0.0
-   reset()
-   for i in range(12):
-      inp.setInput(seq[i,:])
-      tgt.setInput(tar[i,:])
-      fwd()
-      tot_obj += obj.getObjective()
-      rec.step()
-   print "Obj = ", tot_obj
-   rec.setHistoryDelta(np.zeros((1,5)))
-   for i in range(11,-1,-1):
-
-      rec.backstep()
-      inp.setInput(seq[i,:])
-      tgt.setInput(tar[i,:])
-      fwd()
-      bwd()
-      update()
-   grad_dec()
+def train_seq(t):
+   print "   t:", t, "\tObj = ", net.getSequenceObjective(dataset)
+   sgd.trainBatch(dataset)
 
 
 def check():
-   reset()
-   for i in range(12):
-      inp.setInput(seq[i,:])
-      tgt.setInput(tar[i,:])
-      fwd()
-      opt = out.output.getOutput()
-      print seq[i], "->", tar[i], ';', opt
-      rec.step()
+   net.reset()
+   for i in range(24):
+      net.setInput(dataset[0][i,:])
+      net.forward()
+      opt = net.getOutput()
+      print dataset[0][i].transpose(), "->", dataset[1][i].transpose(), ';', opt.transpose()
+      net.step()
 
 
 for i in range(10000):
-   train_seq()
+   train_seq(i)
 
 check()

@@ -27,7 +27,7 @@ class HistoryLayer(AbstractLayer):
    of activations.
    """
 
-   def __init__(self, size, initialHistory):
+   def __init__(self, size, initialHistory=np.zeros((0,0))):
       """
       Create a History layer
       """
@@ -40,7 +40,7 @@ class HistoryLayer(AbstractLayer):
 
       self.history = []
 
-      self.output.value[:] = initialHistory
+      self.output.value = np.copy(initialHistory)
       self.initialHistory = initialHistory
 
 
@@ -104,7 +104,7 @@ class RecurrentLayer(AbstractLayer):
    A layer which implements a delay in time
    """
 
-   def __init__(self, size, initialHistory, baseLayerClass = SigmoidLayer, connectionClass = FullConnection):
+   def __init__(self, size, initialHistory = np.zeros((0,0)), baseLayerClass = SigmoidLayer, connectionClass = FullConnection):
       """
       A recurrent layer extends the activation layer by adding a full recurrent
       connection from the output of the layer to its input, delayed by a 
@@ -148,7 +148,7 @@ class RecurrentLayer(AbstractLayer):
       """
       Perform the backprop step on the activation layer and recurrent connection
       """
-
+      
       self.recurrentConnection.backward()
       self.baseLayer.backward()
       self.historyConnection.backward()
@@ -180,12 +180,41 @@ class RecurrentLayer(AbstractLayer):
       return self.recurrentConnection
 
 
+   def setInitialHistory(self, history):
+      """
+      Setup the initial history of this layer
+      """
+
+      self.historyLayer.initialHistory = history
+      self.historyLayer.output.value = np.copy(history)
+
+
    def setHistoryDelta(self, delta):
       """
       Set the delta on the history layer to the provided value
       """
 
       self.historyLayer.setDelta(delta)
+      # We need to propagate the delta backward to the appropriate ports
+      self.backward()
+
+
+   def zeroInitialHistoryBatch(self, batchSize):
+      """
+      Set the initial history to zeros for the provided batch size
+      """
+
+      zero_history = np.zeros((batchSize, self.layerSize))
+      self.setInitialHistory(zero_history)
+
+
+   def zeroHistoryDeltaBatch(self, batchSize):
+      """
+      Set the initial history delta to zeros for the provided batch size
+      """
+
+      zero_delta = np.zeros((batchSize, self.layerSize))
+      self.setHistoryDelta(zero_delta)
 
 
    def backstep(self):

@@ -61,7 +61,7 @@ class CrossEntropyObjective:
 
       numExamples = self.output_port.getOutput().shape[0]
       self.objective = -np.sum(self.target_port.getOutput() * np.log(self.output_port.getOutput()))
-      self.objective += -np.sum((1.0 - self.target_port.getOutput())*(np.log(1.0 - self.output_port.getOutput())))
+      self.objective += -np.sum((1.0 - self.target_port.getOutput())*(np.log(1.000001 - self.output_port.getOutput())))
       self.objective /= numExamples
 
    def backward(self):
@@ -71,7 +71,7 @@ class CrossEntropyObjective:
 
       numExamples = self.output_port.getOutput().shape[0]
       self.delta = (self.output_port.getOutput() - self.target_port.getOutput())
-      self.delta /= (self.output_port.getOutput() * (1.0 - self.output_port.getOutput()))
+#      self.delta /= (self.output_port.getOutput() * (1.0 - self.output_port.getOutput()))
       self.delta /= numExamples
 
 

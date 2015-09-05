@@ -45,5 +45,6 @@ class SoftmaxLayer(AbstractLayer):
       Perform a backprop step - gradient is the derivative of the sigmoid functon
       """
             
-      self.input.setDelta(self.output.getOutput() * (1.0 - self.output.getOutput()) * self.output.getNetDelta())
+#      self.input.setDelta(self.output.getOutput() * (1.0 - self.output.getOutput()) * self.output.getNetDelta())
+      self.input.setDelta(self.output.getNetDelta())
 
