@@ -53,17 +53,26 @@ def buildNetwork(rnn_size):
    return net
 
 
+def loadNetwork(filename):
+   f = open(filename, 'rb')
+   net = pickle.load(f)
+   f.close()
+   return net
+
+
 def run():
    # Parameters
    RNN_SIZE = 50
-   LEARNING_RATE = 0.00001
-   MOMENTUM = 0.9
+   LEARNING_RATE = 0.00005
+   MOMENTUM = 0.5
    WEIGHT_DECAY = 0.0001
-   NUMBER_EPOCHS = 10000
+   START_EPOCH = 5000
+   NUMBER_EPOCHS = 15000
 
    print "Building network and trainer..."
    # Get the model and trainer
-   rnn_net = buildNetwork(RNN_SIZE)
+#   rnn_net = buildNetwork(RNN_SIZE)
+   rnn_net = loadNetwork('RNN_model_snapshot_5000.pkl')
    trainer = SGDTrainer(rnn_net, learning_rate = LEARNING_RATE, momentum = MOMENTUM, weight_decay = WEIGHT_DECAY)
    print 
 
@@ -96,23 +105,26 @@ def run():
    validation_objective = rnn_net.getSequenceObjective(validation_dataset)
    print "Step # 0:\tTraining Objective =", training_objective,", \t Validation Objective =", validation_objective
 
-   objective_file = open('RNN_model_objectives.txt','w')
-   objective_file.write('Epoch Number, Training Objective, Validation Objective\n')
-   objective_file.write(str(0) + ',' + str(training_objective) + ',' + str(validation_objective) + '\n')
+   objective_file = open('RNN_model_objectives.txt', 'a')
+#   objective_file.write('Epoch Number, Training Objective, Validation Objective\n')
+#   objective_file.write(str(0) + ',' + str(training_objective) + ',' + str(validation_objective) + '\n')
 
    # Let's start training!
-   for i in range(NUMBER_EPOCHS):
+   for i in range(START_EPOCH, NUMBER_EPOCHS):
       trainer.trainBatch(training_dataset)
 
       training_objective = rnn_net.getSequenceObjective(training_dataset)
       validation_objective = rnn_net.getSequenceObjective(validation_dataset)
       print "Step #", i+1 ,":\tTraining Objective = ", training_objective,", \t Validation Objective =", validation_objective
-      objective_file.write(str(0) + ',' + str(training_objective) + ',' + str(validation_objective) + '\n')
+      objective_file.write(str(i+1) + ',' + str(training_objective) + ',' + str(validation_objective) + '\n')
       objective_file.flush()
    
       if (i+1)%25 == 0:
          # Save the model!
          f=open('RNN_model_snapshot_'+str(i+1)+'.pkl','wb')
+         # But don't save the dataset, cuz that part's big!
+         rnn_net.setInput(np.zeros((0,0)))
+         rnn_net.getTarget(np.zeros((0,0)))
          pickle.dump(rnn_net, f)
          f.close()
 
