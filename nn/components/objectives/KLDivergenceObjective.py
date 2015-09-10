@@ -46,7 +46,7 @@ class KLDivergenceObjective:
       Get the current objective value.
       """
 
-      return self.objective
+      return np.sum(self.objective) / self.objective.shape[0]
 
 
    def forward(self):
@@ -56,8 +56,9 @@ class KLDivergenceObjective:
 
       kl = np.sum(self.output_port.getOutput() - self.inactive_value, 0)
       kl /= self.output_port.getOutput().shape[0]
-      self.objective = kl * np.log(kl/self.sparsity)
-      self.objective += (1.0 - kl) * np.log((1.0 - kl) / (1.0 - self.sparsity))
+
+      self.objective = self.sparsity * np.log(self.sparsity/kl)
+      self.objective += (1.0 - self.sparsity) * np.log(((1.0 - self.sparsity) / (1.0 - kl)) + 0.0000001)
 
 
    def backward(self):
@@ -67,8 +68,9 @@ class KLDivergenceObjective:
 
       kl = np.sum(self.output_port.getOutput() - self.inactive_value, 0)
       kl /= self.output_port.getOutput().shape[0]
-      self.delta = -kl/self.sparsity
-      self.delta += (1.0 - kl) / (1.0 - self.sparsity)
+
+      self.delta = -self.sparsity/kl
+      self.delta += (1.0 - self.sparsity) / (1.0 - kl)
 
 
    def getParameterGradient(self):

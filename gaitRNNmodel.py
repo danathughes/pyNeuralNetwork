@@ -63,16 +63,16 @@ def loadNetwork(filename):
 def run():
    # Parameters
    RNN_SIZE = 50
-   LEARNING_RATE = 0.00005
+   LEARNING_RATE = 0.00001
    MOMENTUM = 0.5
    WEIGHT_DECAY = 0.0001
-   START_EPOCH = 5000
+   START_EPOCH = 6750
    NUMBER_EPOCHS = 15000
 
    print "Building network and trainer..."
    # Get the model and trainer
 #   rnn_net = buildNetwork(RNN_SIZE)
-   rnn_net = loadNetwork('RNN_model_snapshot_5000.pkl')
+   rnn_net = loadNetwork('RNN_model_snapshot_6750.pkl')
    trainer = SGDTrainer(rnn_net, learning_rate = LEARNING_RATE, momentum = MOMENTUM, weight_decay = WEIGHT_DECAY)
    print 
 
@@ -123,8 +123,8 @@ def run():
          # Save the model!
          f=open('RNN_model_snapshot_'+str(i+1)+'.pkl','wb')
          # But don't save the dataset, cuz that part's big!
-         rnn_net.setInput(np.zeros((0,0)))
-         rnn_net.getTarget(np.zeros((0,0)))
+         # rnn_net.setInput(np.zeros((0,0)))
+         # rnn_net.setTarget(np.zeros((0,0)))
          pickle.dump(rnn_net, f)
          f.close()
 

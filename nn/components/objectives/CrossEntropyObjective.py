@@ -64,6 +64,7 @@ class CrossEntropyObjective:
       self.objective += -np.sum((1.0 - self.target_port.getOutput())*(np.log(1.000001 - self.output_port.getOutput())))
       self.objective /= numExamples
 
+
    def backward(self):
       """
       Perform a backward pass to calculate the delta of this module
