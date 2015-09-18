@@ -52,7 +52,7 @@ class SplitLayer(AbstractLayer):
       """
 
       # We'll iterate through the output ports, getting each delta
-      deltas = np.zeros(self.input.value.shape)
+      deltas = np.zeros(self.input.getNetInput().shape)
       idx = 0
 
       for port in self.outputPorts:

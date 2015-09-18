@@ -350,3 +350,12 @@ class RecurrentNeuralNetwork(object):
             gradients[units] /= seq_length
 
       return gradients
+
+
+   def clear(self):
+      self.reset()
+      for layer in self.recurrentlayers:
+         layer.zeroInitialHistoryBatch(0)
+      self.setInput(np.zeros((0,self.input_layer.output.size)))
+      self.setTarget(np.zeros((0,self.target_layer.output.size)))
+      self.forward()
