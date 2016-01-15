@@ -4,6 +4,7 @@
 ## predicted values and a target value.
 
 import numpy as np
+import gnumpy as gpu
 
 class MSEObjective:
    """
@@ -59,7 +60,7 @@ class MSEObjective:
       """
 
       numExamples = self.output_port.getOutput().shape[0]
-      self.objective = 0.5 * np.sum((self.output_port.getOutput() - self.target_port.getOutput())**2) / numExamples
+      self.objective = 0.5 * gpu.sum((self.output_port.getOutput() - self.target_port.getOutput())**2) / numExamples
 
 
    def backward(self):

@@ -10,6 +10,7 @@
 from AbstractLayer import AbstractLayer
 from AbstractLayer import InputPort, OutputPort
 import numpy as np
+import gnumpy as gpu
 
 class TanhLayer(AbstractLayer):
    """
@@ -35,7 +36,7 @@ class TanhLayer(AbstractLayer):
       """
 
       # Perform the activation (logistic function)
-      self.output.setOutput((1.0 - np.exp(-self.input.getNetInput())) / (1.0 + np.exp(-self.input.getNetInput())))
+      self.output.setOutput((1.0 - gpu.exp(-self.input.getNetInput())) / (1.0 + gpu.exp(-self.input.getNetInput())))
 
 
    def backward(self):
