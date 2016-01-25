@@ -211,6 +211,16 @@ class NeuralNetwork(object):
       return parameters
 
 
+   def setParameters(self, parameters):
+      """
+      Assign the values of each of the parameters in the dictionary to the
+      corresponding weights
+      """
+
+      for connection in parameters.keys():
+         connection.setParameters(parameters[connection])
+
+      
    def updateParameters(self, updates):
       """
       Update the weights in the model by adding dW

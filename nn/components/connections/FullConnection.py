@@ -61,6 +61,14 @@ class FullConnection(AbstractConnection):
       self.gradient = np.zeros(self.dimensions)
 
 
+   def setParameters(self, params):
+      """
+      Set the weights in the weight matrix
+      """
+
+      self.parameters[:] = params[:]
+
+
    def updateParameters(self, dParams):
       """
       Update the weights in the weight matrix
