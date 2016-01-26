@@ -42,50 +42,74 @@ class PSOTrainer(object):
       self.personal_bests = []
       self.personal_best_positions = []
 
-      self.global_best = []
-      self.global_best_positions = []
+      self.global_best = 1.0e20
+      self.global_best_position = []
+
+      model_params = self.model.getParameters()
+      self.parameter_keys = model_params.keys()
 
       # Create the initial population
-      
+      for i in range(self.number_particles):
+         # Copy the model parameters into a list and add random noise to the position
+         parameters = [model_params[key].copy() for key in self.parameter_keys]
+         parameters = [param + np.random.uniform(self.initial_weight_range[0], self.initial_weight_range[1], param.shape) for param in parameters]
+         self.positions.append(parameters)
+
+         # Set up a 'dummy' personal best
+         self.personal_bests.append(1.0e20)
+         self.personal_best_positions.append(parameters)
+
+         velocity = [0.0*param for param in parameters]
+         self.velocities.append(velocity)
 
 
    def trainBatch(self, dataset):
       """
-      Train once on each of the items in the provided batch
+      Perform a single iteration of PSO
       """
 
-      # Calculate the gradient of the cost function of the model given the data
-      gradients = self.model.gradient(dataset)
-      
-      # Was there a prior weight update (e.g., for momentum)?
-      if self.prior_updates == None:
-         # Initialize prior gradients to zero
-         self.prior_updates = {}
-         for unit, grad in gradients.items():
-            self.prior_updates[unit] = np.zeros(grad.shape)
+      # Calculate the current fitness values for each particle
+      for i in range(self.number_particles):
+         # Write particle i's parameters to the model and get the fitness
+         params = {}
+         for key, param in zip(self.parameter_keys, self.positions[i]):
+            params[key] = param
+         self.model.setParameters(params)
 
-      # What's the current parameters
-      current_parameters = self.model.getParameters()
+         # Calculating the gradient performs all the stuff
+         self.model.gradient(dataset)
+         objective = self.model.getObjective()
+        
+         # is this a new personal best?
+         if objective < self.personal_bests[i]:
+            self.personal_bests[i] = objective
+            self.personal_best_positions[i] = [pos.copy() for pos in self.positions[i]]
 
-      # Calculate the gradient updates
-      updates = {}
-      for unit in gradients.keys():
-         # Gradient Descent
-         updates[unit] = -self.learning_rate * gradients[unit] 
+      # Update the global best
+      for i in range(self.number_particles):
+         if self.personal_bests[i] < self.global_best:
+            self.global_best = self.personal_bests[i]
+            self.global_best_position = [pos.copy() for pos in self.personal_best_positions[i]]
 
-         # Momentum
-         if self.momentum > 0.0:
-            updates[unit] -= self.momentum * self.prior_updates[unit] 
+      # Update positions and velocities
+      for i in range(self.number_particles):
+         c1_val = self.c1*random.random()
+         c2_val = self.c2*random.random()
 
-         # Weight Decay
-         if self.weight_decay > 0.0:
-            updates[unit] -= self.weight_decay * current_parameters[unit] 
+         for j in range(len(self.velocities[i])):
+            self.velocities[i][j] += c1_val*(self.personal_best_positions[i][j] - self.positions[i][j])
+            self.velocities[i][j] += c2_val*(self.global_best_position[j] - self.positions[i][j])
 
-         # Store the current updates for use in the next step
-         self.prior_updates[unit] = updates[unit][:]
+            # So, gotta implement max_velocity here somehow...
 
-      # Update the model parameters
-      self.model.updateParameters(updates)
+            # Update positions
+            self.positions[i][j] += self.velocities[i][j]
+
+      # Finally, set the global best to the model
+      params = {}
+      for key, param in zip(self.parameter_keys, self.global_best_position):
+         params[key] = param
+      self.model.setParameters(params)
 
 
    def train(self, batchGenerator, **kwargs):

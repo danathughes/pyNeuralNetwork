@@ -16,11 +16,12 @@ from nn.components.layers.SigmoidLayer import SigmoidLayer
 from nn.components.layers.SoftmaxLayer import SoftmaxLayer
 from nn.components.objectives.CrossEntropyObjective import CrossEntropyObjective
 from trainers.SGD import SGDTrainer
+from trainers.PSO import PSOTrainer
 
 
 training_percentage = 0.8
 
-if __name__ == '__main__':
+def run():
    # Load the data
 
    iris_data, iris_classes = load_iris_data()
@@ -80,11 +81,15 @@ if __name__ == '__main__':
    print "Done"
 
    print "Creating a trainer..."
-   logger = ConsoleLogger(net, (training_set_X, training_set_Y), (test_set_X, test_set_Y))
-   trainer = SGDTrainer(net, learning_rate=0.5, momentum=0.1, weight_decay=0.001, logger=logger)
+   trainer = SGDTrainer(net, learning_rate=0.5, momentum=0.1, weight_decay=0.001)
+#   trainer = PSOTrainer(net, number_particles=20, initial_weight_range=(-5.0,5.0))
    print "Done"
 
    print "Training..."
    for i in range(10000):
-     trainer.trainBatch((training_set_X, training_set_Y))
+     trainer.trainBatch(training_set)
+#     print "Iteration", i, "\tObjetive =", trainer.global_best
      print "Iteration", i, "\tObjetive =", net.getObjective()
+
+if __name__ == '__main__':
+   run()
