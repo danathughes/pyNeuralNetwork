@@ -4,6 +4,7 @@
 ##
 
 import random
+import time
 from datasets.iris import *
 import Preprocess.featureScaling as featureScaling
 
@@ -17,6 +18,7 @@ from nn.components.objectives.CrossEntropyObjective import CrossEntropyObjective
 from trainers.SGD_flat import SGDTrainer
 from trainers.PSO_flat import PSOTrainer
 
+import matplotlib.pyplot as plt
 
 training_percentage = 0.8
 
@@ -79,21 +81,55 @@ def run():
 
    print "Done"
 
-   print "Creating a trainer..."
-   trainer = SGDTrainer(net, learning_rate=0.5, momentum=0., weight_decay=0.001)
+   SGD_objectives = []
+   PSO_objectives = []
+
+   print "Creating an SGD trainer..."
+   trainer = SGDTrainer(net, learning_rate=0.9, momentum=0., weight_decay=0.001)
+
+   print "Training..."
+   start_time = time.time()
+   for i in range(10000):
+     trainer.trainBatch(training_set)
+     net.evaluate(training_set)
+#     print "Iteration", i, "\tObjetive =", trainer.global_best
+#     print "Iteration", i, "\tObjetive =", net.getObjective()
+     SGD_objectives.append(net.getObjective())
+
+   SGD_time = time.time() - start_time
+
+   net.randomize()
+
    trainer = PSOTrainer(net, number_particles=100, initial_weight_range=(-3.0,3.0), max_velocity = 0.1)
    print "Done"
 
    print "Training..."
+
+   start_time = time.time()
    for i in range(100):
      trainer.trainBatch(training_set)
      net.evaluate(training_set)
 #     print "Iteration", i, "\tObjetive =", trainer.global_best
-     print "Iteration", i, "\tObjetive =", net.getObjective()
+#     print "Iteration", i, "\tObjetive =", net.getObjective()
 
-   net.evaluate(test_set)
-   print net.getOutput()
-   print net.getObjective()
+     for i in range(100):
+        PSO_objectives.append(net.getObjective())
+
+   PSO_time = time.time() - start_time
+
+#   net.evaluate(test_set)
+#   print net.getOutput()
+#   print net.getObjective()
+
+   plt.plot(range(10000), SGD_objectives, '-b', range(10000), PSO_objectives, '-r')
+   plt.legend(['SGD', 'PSO'])
+
+   plt.xlabel('Number of Evaluations')
+   plt.ylabel('Cross-Entropy Error')
+   plt.show()
+
+   print "SGD_time: ", SGD_time
+   print "PSO_time: ", PSO_time
 
 if __name__ == '__main__':
    run()
