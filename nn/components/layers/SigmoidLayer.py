@@ -34,8 +34,15 @@ class SigmoidLayer(AbstractLayer):
       Perform a forward step - activate the net input using logistic function
       """
 
+      net_input = self.input.getNetInput()
+      net_input[net_input > 100.0] = 100.0
+      net_input[net_input < -100.0] = -100.0
+
+
+      self.output.setOutput(1.0 / (1.0 + np.exp(-net_input)))
+
       # Perform the activation (logistic function)
-      self.output.setOutput(1.0 / (1.0 + np.exp(-self.input.getNetInput())))
+#      self.output.setOutput(1.0 / (1.0 + np.exp(-self.input.getNetInput())))
 
 
    def backward(self):

@@ -36,7 +36,11 @@ class SoftmaxLayer(AbstractLayer):
       """
 
       # Perform the activation
-      self.output.setOutput(np.exp(self.input.getNetInput()))
+      net_input = self.input.getNetInput()
+      net_input[net_input > 10.0] = 10.0
+      net_input[net_input < -10.0] = -10.0
+
+      self.output.setOutput(np.exp(net_input) + 1e-10)
       self.output.setOutput(self.output.getOutput() / (np.array([np.sum(self.output.getOutput(),1)]).transpose()))
 
 

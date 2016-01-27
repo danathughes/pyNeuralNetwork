@@ -14,8 +14,8 @@ from nn.components.layers.InputLayer import InputLayer
 from nn.components.layers.SigmoidLayer import SigmoidLayer
 from nn.components.layers.SoftmaxLayer import SoftmaxLayer
 from nn.components.objectives.CrossEntropyObjective import CrossEntropyObjective
-from trainers.SGD import SGDTrainer
-from trainers.PSO import PSOTrainer
+from trainers.SGD_flat import SGDTrainer
+from trainers.PSO_flat import PSOTrainer
 
 
 training_percentage = 0.8
@@ -80,19 +80,18 @@ def run():
    print "Done"
 
    print "Creating a trainer..."
-   trainer = SGDTrainer(net, learning_rate=0.9, momentum=0., weight_decay=0.001)
-#   trainer = PSOTrainer(net, number_particles=20, initial_weight_range=(-5.0,5.0))
+   trainer = SGDTrainer(net, learning_rate=0.5, momentum=0., weight_decay=0.001)
+   trainer = PSOTrainer(net, number_particles=100, initial_weight_range=(-3.0,3.0), max_velocity = 0.1)
    print "Done"
 
    print "Training..."
-   for i in range(10000):
+   for i in range(100):
      trainer.trainBatch(training_set)
+     net.evaluate(training_set)
 #     print "Iteration", i, "\tObjetive =", trainer.global_best
      print "Iteration", i, "\tObjetive =", net.getObjective()
 
-   net.setInput(test_set_X)
-   net.setTarget(test_set_Y)
-   net.forward()
+   net.evaluate(test_set)
    print net.getOutput()
    print net.getObjective()
 

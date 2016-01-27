@@ -243,6 +243,21 @@ class NeuralNetwork(object):
       return gradients
 
 
+   def evaluate(self, dataset):
+      """
+      Perform a forward pass on the dataset
+      """
+
+      inputs = dataset[0]
+      targets = dataset[1]
+
+      self.setInput(inputs)
+      self.setTarget(targets)
+
+      self.reset()
+      self.forward()
+
+
    def gradient(self, dataset, flatten=False):
       """
       Perform a training step on this model to get the gradient w.r.t. the dataset
@@ -320,6 +335,7 @@ class NeuralNetwork(object):
          gradients = np.concatenate([gradients, connection.getParameterGradient().copy().flatten()])
 
       return gradients
+
 
 
 
