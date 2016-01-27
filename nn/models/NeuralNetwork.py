@@ -220,7 +220,7 @@ class NeuralNetwork(object):
       for connection in parameters.keys():
          connection.setParameters(parameters[connection])
 
-      
+
    def updateParameters(self, updates):
       """
       Update the weights in the model by adding dW
@@ -243,7 +243,7 @@ class NeuralNetwork(object):
       return gradients
 
 
-   def gradient(self, dataset):
+   def gradient(self, dataset, flatten=False):
       """
       Perform a training step on this model to get the gradient w.r.t. the dataset
       """
@@ -261,4 +261,65 @@ class NeuralNetwork(object):
       self.backward()
       self.update()
 
-      return self.getParameterGradients()
+      if flatten:
+         return self.getFlatParameterGradients()
+      else:
+         return self.getParameterGradients()
+
+
+   def getFlatParameters(self):
+      """
+      Provide a flattened (1-D) set of weights
+      """
+
+      # Construct a flattened version starting with an empty array
+      parameters = np.array([])
+
+      # Concatenate each flattened weight matrix to the parameters
+      for connection in self.connections:
+         parameters = np.concatenate([parameters, connection.getParameters().copy().flatten()])
+
+      return parameters
+
+
+   def setFlatParameters(self, parameters):
+      """
+      Set the parameters to the flattened (1-D) parameters provided
+      """
+
+      # Maintain the current index in the flattened parameters, and reconstruct
+      # each parameter
+      idx = 0
+
+      for connection in self.connections:
+         connection.setParameters(parameters[idx:idx+connection.getParameters().size].reshape(connection.getParameters().shape))
+         idx += connection.getParameters().size
+
+
+   def updateFlatParameters(self, update):
+      """
+      Update the parameters with a flattened update
+      """
+
+      idx = 0
+
+      for connection in self.connections:
+         connection.updateParameters(update[idx:idx+connection.getParameters().size].reshape(connection.getParameters().shape))
+         idx += connection.getParameters().size
+
+   def getFlatParameterGradients(self):
+      """
+      Get the current gradients of each connection
+      """
+
+      # Construct a flattened version starting with an empty array
+      gradients = np.array([])
+
+      # Concatenate each flattened weight matrix to the parameters
+      for connection in self.connections:
+         gradients = np.concatenate([gradients, connection.getParameterGradient().copy().flatten()])
+
+      return gradients
+
+
+

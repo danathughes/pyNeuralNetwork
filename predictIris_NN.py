@@ -3,7 +3,6 @@
 ## Simple script to predict iris using neural network code
 ##
 
-
 import random
 from datasets.iris import *
 import Preprocess.featureScaling as featureScaling
@@ -81,7 +80,7 @@ def run():
    print "Done"
 
    print "Creating a trainer..."
-   trainer = SGDTrainer(net, learning_rate=0.5, momentum=0.1, weight_decay=0.001)
+   trainer = SGDTrainer(net, learning_rate=0.9, momentum=0., weight_decay=0.001)
 #   trainer = PSOTrainer(net, number_particles=20, initial_weight_range=(-5.0,5.0))
    print "Done"
 
@@ -90,6 +89,12 @@ def run():
      trainer.trainBatch(training_set)
 #     print "Iteration", i, "\tObjetive =", trainer.global_best
      print "Iteration", i, "\tObjetive =", net.getObjective()
+
+   net.setInput(test_set_X)
+   net.setTarget(test_set_Y)
+   net.forward()
+   print net.getOutput()
+   print net.getObjective()
 
 if __name__ == '__main__':
    run()
